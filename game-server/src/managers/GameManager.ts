@@ -11,10 +11,9 @@ export class GameManager {
   private playerCards: Map<PlayerState, Card[]> = new Map()
   private deck: Card[] = []
 
-  constructor(state: GameState, turnManager: TurnManager) {
+  constructor(state: GameState) {
     this.state = state
-    this.turnManager = turnManager
-    this.actionHandler = new ActionHandler(state, turnManager)
+    this.actionHandler = new ActionHandler(state, this.turnManager)
   }
 
   startNewRound() {
