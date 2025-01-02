@@ -2,18 +2,18 @@ import { Room, Client } from '@colyseus/core'
 import { PlayerState } from './schema/PlayerState'
 import { GameState } from './schema/GameState'
 import { TurnManager } from '../managers/TurnManager'
-import { GameLogic } from '../core/GameLogic'
+import { GameManager } from '../managers/GameManager'
 export class MyRoom extends Room<GameState> {
-  private gameLogic: GameLogic
+  private GameManager: GameManager
   private turnManager: TurnManager
 
   onCreate(options: any) {
     this.setState(new GameState())
     this.turnManager = new TurnManager(this.state)
-    this.gameLogic = new GameLogic(this.state, this.turnManager)
+    this.GameManager = new GameManager(this.state, this.turnManager)
     this.onMessage('action', (client, data) => {
       const { action, amount } = data
-      this.gameLogic.handlePlayerAction(client.sessionId, action, amount)
+      this.GameManager.handlePlayerAction(client.sessionId, action, amount)
     })
   }
 
@@ -39,8 +39,8 @@ export class MyRoom extends Room<GameState> {
       (p) => p.id !== client.sessionId
     )
     this.broadcast('playerLeft', client.sessionId)
-    if (this.state.players.length === 0) {
-      this.gameLogic.endGame()
+    if (this.state.players.length < 2) {
+      this.GameManager.endGame()
     }
   }
 
@@ -51,6 +51,6 @@ export class MyRoom extends Room<GameState> {
     console.log('Game started')
     // Логика начала игры
     this.state.gameStarted = true
-    this.gameLogic.startNewRound()
+    this.GameManager.startNewRound()
   }
 }
