@@ -1,6 +1,6 @@
 import { Room } from 'colyseus'
 import { GameManager } from '../managers/GameManager'
-import { MessageService } from '../services/MessageService'
+import { MessageService } from '../services/messageService'
 
 export class RoomHandlers {
   MessageService: MessageService

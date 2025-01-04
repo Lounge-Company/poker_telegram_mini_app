@@ -3,7 +3,7 @@ import { PlayerState } from './schema/PlayerState'
 import { GameState } from './schema/GameState'
 import { GameManager } from '../managers/GameManager'
 import { RoomHandlers } from '../handlers/roomHandlers'
-import { MessageService } from '../services/MessageService'
+import { MessageService } from '../services/messageService'
 
 export class MyRoom extends Room<GameState> {
   private GameManager: GameManager
