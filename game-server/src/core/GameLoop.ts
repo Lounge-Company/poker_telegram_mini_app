@@ -10,21 +10,21 @@ export class GameLoopManager {
   constructor(state: GameState, turnManager: TurnManager) {
     this.state = state
     this.turnManager = turnManager
-    this.GameManager = new GameManager(state, turnManager)
+    this.GameManager = new GameManager(state)
   }
 
   async startGameLoop() {
     while (this.state.gameStarted) {
       try {
         // Подготовка раунда
-        this.GameManager.initializeDeck()
-        this.GameManager.dealInitialCards()
+        // this.GameManager.initializeDeck()
+        // this.GameManager.dealInitialCards()
 
         while (this.GameManager.shouldContinueRound()) {
           switch (this.state.gamePhase) {
             case 'preFlop':
-              this.turnManager.startRound()
-              await this.waitForBettingRound()
+              // this.turnManager.startRound()
+              // await this.waitForBettingRound()
               break
             case 'flop':
               break
