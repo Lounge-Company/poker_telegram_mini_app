@@ -1,9 +1,9 @@
 import { GameState } from '../rooms/schema/GameState'
 
-export class MessageHandler {
+export class MessageService {
   constructor(private state: GameState) {}
-  handleChatMessage(playerId: string, message: string) {
-    const player = this.state.players.find((p) => p.id === playerId)
+  createChatMessage(playerId: string, message: string) {
+    const player = this.state.players.get(playerId)
     if (player) {
       return {
         playerId: playerId,
@@ -14,6 +14,7 @@ export class MessageHandler {
     }
     return null
   }
+
   createSystemMessage(message: string) {
     return {
       playerId: 'system',

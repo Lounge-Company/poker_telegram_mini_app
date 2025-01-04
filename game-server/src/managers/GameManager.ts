@@ -2,23 +2,22 @@ import { TurnManager } from './TurnManager'
 import { Card } from '../rooms/schema/Card'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { GameState } from '../rooms/schema/GameState'
-import { ActionHandler } from '../handlers/ActionHandler'
+import { actionService } from '../services/actionService'
 import { DeckManager } from './DeckManager'
 export class GameManager {
   private state: GameState
   private turnManager: TurnManager
-  private actionHandler: ActionHandler
+  private actionService: actionService
   private playerCards: Map<PlayerState, Card[]> = new Map()
   private deck: Card[] = []
 
   constructor(state: GameState) {
     this.state = state
-    this.actionHandler = new ActionHandler(state, this.turnManager)
   }
 
   startNewRound() {
-    this.initializeDeck()
-    this.dealInitialCards()
+    // this.initializeDeck()
+    // this.dealInitialCards()
   }
 
   handlePlayerAction(
@@ -30,18 +29,17 @@ export class GameManager {
 
     switch (action) {
       case 'bet':
-        return this.actionHandler.handleBet(playerId, amount)
+        this.actionService.handleBet(playerId, amount)
       case 'fold':
-        return this.actionHandler.handleFold(playerId)
+        this.actionService.handleFold(playerId)
       case 'check':
-        return this.actionHandler.handleCheck(playerId)
+        this.actionService.handleCheck(playerId)
       case 'call':
-        return this.actionHandler.handleCall(playerId)
+        this.actionService.handleCall(playerId)
       case 'raise':
-        return this.actionHandler.handleRaise(playerId, amount)
-      default:
-        return false
+        this.actionService.handleRaise(playerId, amount)
     }
+    this.turnManager.nextTurn()
   }
 
   private dealCommunityCards(numCards: number) {
@@ -52,10 +50,18 @@ export class GameManager {
     }
   }
   private checkRoundEnd() {
-    // Проверяем, все ли игроки сбросили карты или сделали ставку
-    const activePlayers = this.state.players.filter((p) => !p.hasFolded)
-    if (activePlayers.length === 1) {
-      this.endRound(activePlayers[0])
+    let activePlayersCount = 0
+    let lastActivePlayer = null
+
+    this.state.players.forEach((player) => {
+      if (!player.hasFolded) {
+        activePlayersCount++
+        lastActivePlayer = player
+      }
+    })
+
+    if (activePlayersCount === 1 && lastActivePlayer) {
+      this.endRound(lastActivePlayer)
     }
   }
 
@@ -65,25 +71,34 @@ export class GameManager {
     // Подготовка к следующему раунду
     setTimeout(() => this.startNewRound(), 3000)
   }
-  public shouldContinueRound(): boolean {
-    // Получаем массив только активных игроков (не сделавших фолд)
-    const activePlayers = this.state.players.filter((p) => !p.hasFolded)
 
-    // Продолжаем раунд если активных игроков больше 1
-    return activePlayers.length > 1
+  public shouldContinueRound(): boolean {
+    let activePlayersCount = 0
+
+    this.state.players.forEach((player) => {
+      if (!player.hasFolded) {
+        activePlayersCount++
+        if (activePlayersCount > 1) return true
+      }
+    })
+
+    return activePlayersCount > 1
   }
   public allPlayersActed(): boolean {
-    const activePlayers = this.state.players.filter(
-      (player) => !player.hasFolded
-    )
+    let allActed = true
 
-    // Check if all active players have matched the current bet
-    return activePlayers.every(
-      (player) =>
-        player.currentBet === this.state.currentBet ||
-        player.hasFolded ||
-        player.isAllIn
-    )
+    this.state.players.forEach((player) => {
+      if (
+        !player.hasFolded &&
+        player.currentBet !== this.state.currentBet &&
+        !player.isAllIn
+      ) {
+        allActed = false
+        return
+      }
+    })
+
+    return allActed
   }
   private resettGameState() {
     // Логика сброса игровых состояний
