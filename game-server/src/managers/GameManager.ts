@@ -84,6 +84,7 @@ export class GameManager {
 
     return activePlayersCount > 1
   }
+
   public allPlayersActed(): boolean {
     let allActed = true
 

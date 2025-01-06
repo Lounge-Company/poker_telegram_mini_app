@@ -1,18 +1,14 @@
-import { GameState } from '../rooms/schema/GameState'
+import { PlayerState } from '../rooms/schema/PlayerState'
 
 export class MessageService {
-  constructor(private state: GameState) {}
-  createChatMessage(playerId: string, message: string) {
-    const player = this.state.players.get(playerId)
-    if (player) {
-      return {
-        playerId: playerId,
-        playerName: player.name || `Player${Math.floor(Math.random() * 1000)}`,
-        message: message,
-        timestamp: new Date().toISOString()
-      }
+  constructor() {}
+  createChatMessage(player: PlayerState, message: string) {
+    return {
+      playerId: player.id,
+      playerName: player.name || `Player${Math.floor(Math.random() * 1000)}`,
+      message: message,
+      timestamp: new Date().toISOString()
     }
-    return null
   }
 
   createSystemMessage(message: string) {

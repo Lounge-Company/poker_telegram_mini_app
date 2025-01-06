@@ -4,17 +4,23 @@ import { GameState } from './schema/GameState'
 import { GameManager } from '../managers/GameManager'
 import { RoomHandlers } from '../handlers/roomHandlers'
 import { MessageService } from '../services/messageService'
+import { RoomManager } from '../managers/RoomManager'
 
 export class MyRoom extends Room<GameState> {
   private GameManager: GameManager
   private RoomHandlers: RoomHandlers
   private MessageService: MessageService
-
+  private RoomManager: RoomManager
   onCreate(options: any) {
     this.setState(new GameState())
     this.GameManager = new GameManager(this.state)
-    this.RoomHandlers = new RoomHandlers(this, this.GameManager)
-    this.MessageService = new MessageService(this.state)
+    this.RoomManager = new RoomManager(this.state)
+    this.RoomHandlers = new RoomHandlers(
+      this,
+      this.GameManager,
+      this.RoomManager
+    )
+    this.MessageService = new MessageService()
     this.RoomHandlers.registerHandlers()
   }
 
@@ -25,13 +31,12 @@ export class MyRoom extends Room<GameState> {
     const newPlayer = new PlayerState()
     newPlayer.id = client.sessionId
 
-    // Добавляем нового игрока в список игроков в состоянии игры
-    this.state.players.set(client.sessionId, newPlayer)
+    // Добавляем нового игрока в список наблюдателей в состоянии игры
+    this.state.spectators.set(client.sessionId, newPlayer)
 
     const systemMessage = this.MessageService.createSystemMessage(
-      `Player ${client.sessionId} joined the game`
+      `Player ${client.sessionId} joined the room`
     )
-    console.log('systemMessage :', systemMessage)
     this.broadcast('message', systemMessage)
     // Если в комнате достаточно игроков, начинаем игру
     // if (this.state.players.size >= 2 && !this.state.gameStarted) {

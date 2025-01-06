@@ -3,6 +3,7 @@ import { PlayerState } from './PlayerState'
 import { Card } from './Card'
 export class GameState extends Schema {
   @type({ map: PlayerState }) players = new MapSchema<PlayerState>()
+  @type({ map: PlayerState }) waitingQueue = new MapSchema<PlayerState>()
   @type({ map: PlayerState }) spectators = new MapSchema<PlayerState>()
   @type([Card]) communityCards = new Array<Card>()
   @type('string') currentTurn: PlayerState['id']

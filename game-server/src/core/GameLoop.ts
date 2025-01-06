@@ -43,7 +43,11 @@ export class GameLoopManager {
       }
     }
   }
-
+  private async runBettingRound() {
+    while (this.GameManager.shouldContinueRound()) {
+      await delay(1000)
+    }
+  }
   private waitForBettingRound(): Promise<void> {
     return new Promise((resolve) => {
       const checkInterval = setInterval(() => {
