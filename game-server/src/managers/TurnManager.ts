@@ -2,7 +2,9 @@ import { GameState } from '../rooms/schema/GameState'
 import { PlayerState } from '../rooms/schema/PlayerState'
 export class TurnManager {
   private state: GameState
-  private currentPlayerIndex: number = 0
+  private playerOrder: string[] = []
+  private dealerPosition: number = 0
+  private currentPosition: number = 0
   private turnTimeout: NodeJS.Timeout
   private readonly TURN_TIME = 30000
 
@@ -10,21 +12,25 @@ export class TurnManager {
     this.state = state
   }
   startTurnTimer() {
-    // Очищаем предыдущий таймер если он был
     if (this.turnTimeout) {
       clearTimeout(this.turnTimeout)
     }
 
-    // Устанавливаем новый таймер
     this.turnTimeout = setTimeout(() => {
       const currentPlayerId = this.getCurrentPlayerId()
       if (currentPlayerId) {
-        // Автоматический фолд при истечении времени
-        this.state.players.find((p) => p.id === currentPlayerId).hasFolded =
-          true
-        this.nextTurn()
+        const currentPlayer = this.state.players.get(currentPlayerId)
+        if (currentPlayer) {
+          currentPlayer.hasFolded = true
+          this.nextTurn()
+        }
       }
     }, this.TURN_TIME)
+  }
+  stopTurnTimer() {
+    if (this.turnTimeout) {
+      clearTimeout(this.turnTimeout)
+    }
   }
   isPlayerTurn(playerId: string): boolean {
     return this.state.currentTurn === playerId
@@ -32,15 +38,21 @@ export class TurnManager {
   getCurrentPlayerId() {
     return this.state.currentTurn
   }
-  startRound() {
-    this.currentPlayerIndex = 0
-    this.state.currentTurn = this.state.players[0].id
-    this.startTurnTimer()
-  }
 
-  nextTurn() {
-    this.currentPlayerIndex =
-      (this.currentPlayerIndex + 1) % this.state.players.length
-    this.state.currentTurn = this.state.players[this.currentPlayerIndex].id
+  public nextTurn() {
+    do {
+      this.currentPosition =
+        (this.currentPosition + 1) % this.playerOrder.length
+      const nextPlayer = this.state.players.get(
+        this.playerOrder[this.currentPosition]
+      )
+
+      if (!nextPlayer.hasFolded && !nextPlayer.isAllIn) {
+        this.state.currentTurn = nextPlayer.id
+        break
+      }
+    } while (true)
+
+    this.startTurnTimer()
   }
 }
