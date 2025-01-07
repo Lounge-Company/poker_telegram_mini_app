@@ -14,9 +14,9 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
     }
   };
   return (
-    <div style={{ display: "flex", marginTop: "10px", gap: "20px" }}>
+    <div style={{ display: "flex", gap: "20px" }}>
       <Input
-        placeholder="Enter your message..."
+        placeholder="Your message... (press Enter to send)"
         value={message}
         onChange={(e) => setMessage(e.target.value)}
         onPressEnter={handleMessage}
@@ -26,13 +26,13 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
           borderColor: "#3a3a3a"
         }}
       />
-      <Button
+      {/* <Button
         // type="primary"
         onClick={handleMessage}
         style={{ background: "#262626", borderColor: "#262626" }}
       >
         Send
-      </Button>
+      </Button> */}
     </div>
   );
 };

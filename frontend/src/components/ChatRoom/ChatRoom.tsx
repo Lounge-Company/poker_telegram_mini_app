@@ -2,7 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import { Layout, ConfigProvider } from "antd";
 import MessageList from "./MessageList";
 import MessageInput from "./MessageInput";
-
+import { Client, Room } from "colyseus.js";
 const { Content } = Layout;
 
 interface Message {
@@ -14,22 +14,59 @@ const ChatRoom = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const messageEndRef = useRef<HTMLDivElement>(null);
 
-  // Инициализация сообщений
-  useEffect(() => {
-    setMessages([
-      { username: "Nataly", message: "How are you doing guys?" },
-      { username: "Kertis", message: "Nothing special babe<3" },
-      { username: "Clay", message: "Hey stop flirting here!" }
-    ]);
-  }, []);
+  const [room, setRoom] = useState<Room | null>(null);
+
+  // // Инициализация сообщений
+  // useEffect(() => {
+  //   setMessages([
+  //     { username: "Nataly", message: "How are you doing guys?" },
+  //     { username: "Kertis", message: "Nothing special babe<3" },
+  //     { username: "Clay", message: "Hey stop flirting here!" }
+  //   ]);
+  // }, []);
 
   // Прокрутка вниз при добавлении нового сообщения
   useEffect(() => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  useEffect(() => {
+    const connectToRoom = async () => {
+      const client = new Client("ws://localhost:2567");
+
+      try {
+        const joinedRoom = await client.joinOrCreate("my_room");
+        setRoom(joinedRoom);
+
+        // Listen for messages from the server
+        joinedRoom.onMessage("message", (message) => {
+          const transformedMessage: Message = {
+            username: message.playerName,
+            message: message.message
+          };
+          setMessages((prevMessages) => [...prevMessages, transformedMessage]);
+          console.log("Received message:", transformedMessage);
+        });
+
+        console.log("Joined room successfully:", joinedRoom);
+      } catch (error) {
+        console.error("Failed to join room:", error);
+      }
+    };
+
+    connectToRoom();
+
+    // Cleanup on component unmount
+    return () => {
+      if (room) {
+        room.leave();
+      }
+    };
+  }, []);
+
   const handleMessageSend = (newMessage: string) => {
-    setMessages([...messages, { username: "Anonymous", message: newMessage }]);
+    room?.send("message", newMessage);
+    // setMessages([...messages, { username: "Anonymous", message: newMessage }]);
   };
 
   return (
