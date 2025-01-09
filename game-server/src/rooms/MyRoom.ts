@@ -30,7 +30,7 @@ export class MyRoom extends Room<GameState> {
     // Создаем нового игрока, используя PlayerState
     const newPlayer = new PlayerState()
     newPlayer.id = client.sessionId
-
+    newPlayer.name = `Player ${Math.floor(Math.random() * 1000)}`
     // Добавляем нового игрока в список наблюдателей в состоянии игры
     this.state.spectators.set(client.sessionId, newPlayer)
 
@@ -46,6 +46,7 @@ export class MyRoom extends Room<GameState> {
   onLeave(client: Client) {
     console.log(client.sessionId, 'left!')
     this.state.players.delete(client.sessionId)
+    this.state.spectators.delete(client.sessionId)
     const systemMessage = this.MessageService.createSystemMessage(
       `Player ${client.sessionId} left the game`
     )

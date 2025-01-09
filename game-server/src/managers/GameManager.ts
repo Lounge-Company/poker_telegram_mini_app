@@ -4,22 +4,31 @@ import { PlayerState } from '../rooms/schema/PlayerState'
 import { GameState } from '../rooms/schema/GameState'
 import { actionService } from '../services/actionService'
 import { DeckManager } from './DeckManager'
+import { GameLoop } from '../core/GameLoop'
+
 export class GameManager {
-  private state: GameState
-  private turnManager: TurnManager
-  private actionService: actionService
   private playerCards: Map<PlayerState, Card[]> = new Map()
   private deck: Card[] = []
+  state: GameState
+  turnManager: TurnManager
+  actionService: actionService
+  gameLoop: GameLoop
+  deckManager: DeckManager
 
   constructor(state: GameState) {
     this.state = state
+    this.turnManager = new TurnManager(state)
+    this.gameLoop = new GameLoop(this.state, this.turnManager, this)
+    this.deckManager = new DeckManager()
   }
-
-  startNewRound() {
-    // this.initializeDeck()
-    // this.dealInitialCards()
+  startGame() {
+    this.state.gameStarted = true
+    this.gameLoop.startGameLoop()
   }
-
+  initializeDeck() {
+    this.deck = this.deckManager.createDeck()
+    console.log('Deck initialized:', this.deck)
+  }
   handlePlayerAction(
     playerId: string,
     action: string,

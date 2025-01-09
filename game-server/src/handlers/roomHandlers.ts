@@ -37,44 +37,53 @@ export class RoomHandlers {
 
   private handlePlayerReady(client: any) {
     // refactor this
-    this.room.onMessage('ready', (client) => {
-      const player = this.room.state.players.get(client.sessionId)
-      if (player) {
-        player.ready = true
-        this.room.broadcast('playerReady', client.sessionId)
+    const player = this.room.state.players.get(client.sessionId)
+    if (player) {
+      this.room.state.readyPlayers++
+
+      if (
+        this.room.state.readyPlayers === this.room.state.players.size &&
+        this.room.state.players >= 2
+      ) {
+        this.gameManager.startGame()
+        this.room.broadcast('gameStarted')
       }
-    })
+    }
   }
 
   private handlePlayerUnready(client: any) {
     // refactor this
-    this.room.onMessage('unready', (client) => {
-      const player = this.room.state.players.get(client.sessionId)
-      if (player) {
-        player.ready = false
-        this.room.broadcast('playerUnready', client.sessionId)
-      }
-    })
+    const player = this.room.state.players.get(client.sessionId)
+    if (player) {
+      player.ready = false
+      this.room.broadcast('playerUnready', client.sessionId)
+    }
   }
 
-  private handlePlayerAction(client: any, action: string, amount: number) {
-    this.room.onMessage('action', (client, data) => {
-      const { action, amount } = data
-    })
-  }
-  private handlePlayerJoin(client: any) {
-    const success = this.roomManager.handlePlayerJoinToGame(client.sessionId)
-    if (success) {
-      console.log(`Player ${client.sessionId} joined to the game`)
+  private handlePlayerAction(client: any, action: string, amount: number) {}
+  private handlePlayerJoin(client: any, seatNumber: number) {
+    const success = this.roomManager.handlePlayerJoinToGame(
+      client.sessionId,
+      seatNumber
+    )
+    if (!success) {
+      console.log(`Player ${client.sessionId} failed to join to the game`)
       const message = this.MessageService.createSystemMessage(
-        `Player ${client.sessionId} joined to the game`
+        `seat ${seatNumber} is already taken`
       )
-      this.room.broadcast('message', message)
+      client.send('message', message)
+      return
     }
+    console.log(`Player ${client.sessionId} joined to the game`)
+    const message = this.MessageService.createSystemMessage(
+      `Joined at seat ${seatNumber}!`
+    )
+    client.send('message', message)
   }
   private handlePlayerLeave(client: any) {
     const success = this.roomManager.handlePlayerLeaveGame(client.sessionId)
     if (success) {
+      console.log(`Player ${client.sessionId} left the game`)
       const message = this.MessageService.createSystemMessage(
         `Player ${client.sessionId} left the game`
       )
