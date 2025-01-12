@@ -17,6 +17,5 @@ export class GameState extends Schema {
   @type('number') currentBet = 0
   @type('number') smallBlind: number = 5
   @type('number') bigBlind: number = 10
-  @type('number') smallBlindPlayerIndex = 0
   @type('string') gamePhase = 'preFlop' // preFlop, flop, turn, river
 }

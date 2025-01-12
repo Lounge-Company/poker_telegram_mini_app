@@ -33,9 +33,9 @@ export class GameLoop {
     }
   }
   private async bettingRound() {
-    console.log('Starting betting round...');
-    this.state.currentBet = 0;
-    this.state.pot = 0;
-    while()
+    console.log('Starting betting round...')
+    this.state.currentBet = 0
+    this.state.pot = 0
+    // while()
   }
 }

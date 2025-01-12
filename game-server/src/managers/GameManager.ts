@@ -7,7 +7,6 @@ import { DeckManager } from './DeckManager'
 import { GameLoop } from '../core/GameLoop'
 
 export class GameManager {
-
   state: GameState
   turnManager: TurnManager
   actionService: actionService
@@ -22,7 +21,7 @@ export class GameManager {
   }
   startGame() {
     this.state.gameStarted = true
-    this.gameLoop.startGameLoop()
+    this.gameLoop.gameLoop()
   }
   handlePlayerAction(
     playerId: string,
@@ -46,35 +45,35 @@ export class GameManager {
     this.turnManager.nextTurn()
   }
 
-  private dealCommunityCards(numCards: number) {
-    // Логика раздачи общих карт
-    for (let i = 0; i < numCards; i++) {
-      const card = this.deck.pop()
-      this.state.communityCards.push(card)
-    }
-  }
-  private checkRoundEnd() {
-    let activePlayersCount = 0
-    let lastActivePlayer = null
+  // private dealCommunityCards(numCards: number) {
+  //   // Логика раздачи общих карт
+  //   for (let i = 0; i < numCards; i++) {
+  //     const card = this.deck.pop()
+  //     this.state.communityCards.push(card)
+  //   }
+  // }
+  // private checkRoundEnd() {
+  //   let activePlayersCount = 0
+  //   let lastActivePlayer = null
 
-    this.state.players.forEach((player) => {
-      if (!player.hasFolded) {
-        activePlayersCount++
-        lastActivePlayer = player
-      }
-    })
+  //   this.state.players.forEach((player) => {
+  //     if (!player.hasFolded) {
+  //       activePlayersCount++
+  //       lastActivePlayer = player
+  //     }
+  //   })
 
-    if (activePlayersCount === 1 && lastActivePlayer) {
-      this.endRound(lastActivePlayer)
-    }
-  }
+  //   if (activePlayersCount === 1 && lastActivePlayer) {
+  //     this.endRound(lastActivePlayer)
+  //   }
+  // }
 
-  private endRound(winner: PlayerState) {
-    winner.chips += this.state.pot
-    this.state.pot = 0
-    // Подготовка к следующему раунду
-    setTimeout(() => this.startNewRound(), 3000)
-  }
+  // private endRound(winner: PlayerState) {
+  //   winner.chips += this.state.pot
+  //   this.state.pot = 0
+  //   // Подготовка к следующему раунду
+  //   setTimeout(() => this.startNewRound(), 3000)
+  // }
 
   public shouldContinueRound(): boolean {
     let activePlayersCount = 0
@@ -105,18 +104,18 @@ export class GameManager {
 
     return allActed
   }
-  private resettGameState() {
-    // Логика сброса игровых состояний
-    this.state.players.forEach((player) => {
-      player.chips = 1000
-      player.hasFolded = false
-    })
-    this.state.pot = 0
-    this.state.currentBet = 0
-    this.state.communityCards = []
-    this.playerCards.clear()
-    this.deck = []
-  }
+  // private resettGameState() {
+  //   // Логика сброса игровых состояний
+  //   this.state.players.forEach((player) => {
+  //     player.chips = 1000
+  //     player.hasFolded = false
+  //   })
+  //   this.state.pot = 0
+  //   this.state.currentBet = 0
+  //   this.state.communityCards = []
+  //   this.playerCards.clear()
+  //   this.deck = []
+  // }
   public endGame() {
     // Логика завершения игры
     this.state.gameStarted = false

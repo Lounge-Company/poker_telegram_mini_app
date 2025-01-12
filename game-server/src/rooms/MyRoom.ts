@@ -59,10 +59,4 @@ export class MyRoom extends Room<GameState> {
   onDispose() {
     console.log('room', this.roomId, 'disposing...')
   }
-  private startGame() {
-    console.log('Game started')
-    // Логика начала игры
-    this.state.gameStarted = true
-    this.GameManager.startNewRound()
-  }
 }
