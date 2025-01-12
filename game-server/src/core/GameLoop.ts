@@ -2,11 +2,17 @@ import { GameManager } from '../managers/GameManager'
 import { GameState } from '../rooms/schema/GameState'
 import { TurnManager } from '../managers/TurnManager'
 import { delay } from '../utils/delay'
+import { PlayerState } from '../rooms/schema/PlayerState'
+import { Card } from '../rooms/schema/Card'
+import { DeckManager } from '../managers/DeckManager'
+
 export class GameLoop {
-  private GameManager: GameManager
+  private playerCards: Map<string, Card[]> = new Map()
+  private deck: Card[] = []
+  private gameloopDelay: number = 3000
   private turnManager: TurnManager
   private state: GameState
-
+  private deckManager: DeckManager
   constructor(
     state: GameState,
     turnManager: TurnManager,
@@ -14,53 +20,22 @@ export class GameLoop {
   ) {
     this.state = state
     this.turnManager = turnManager
-    this.GameManager = gameManager
   }
 
-  async startGameLoop() {
-    while (this.state.gameStarted) {
-      try {
-        // Подготовка раунда
-        this.GameManager.initializeDeck()
-        // this.GameManager.dealInitialCards()
-
-        // while (this.GameManager.shouldContinueRound()) {
-        //   switch (this.state.gamePhase) {
-        //     case 'preFlop':
-        //       // this.turnManager.startRound()
-        //       // await this.waitForBettingRound()
-        //       break
-        //     case 'flop':
-        //       break
-        //     case 'turn':
-        //       break
-        //     case 'river':
-        //       break
-        //     default:
-        //       console.log('Invalid game phase')
-        //       break
-        //   }
-        //   this.state.gamePhase = 'preFlop'
-        // }
-        await delay(5000)
-      } catch (error) {
-        console.log('Error in game loop:', error)
-      }
+  async gameLoop() {
+    if (this.state.gameStarted) {
+      console.log('Game loop running...')
+      this.deck = this.deckManager.createDeck()
+      console.log('deck created :', this.deck)
+      setTimeout(() => this.gameLoop(), this.gameloopDelay)
+    } else {
+      console.log('Game loop stopped.')
     }
   }
-  private async runBettingRound() {
-    while (this.GameManager.shouldContinueRound()) {
-      await delay(1000)
-    }
-  }
-  private waitForBettingRound(): Promise<void> {
-    return new Promise((resolve) => {
-      const checkInterval = setInterval(() => {
-        if (this.GameManager.allPlayersActed()) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 1000)
-    })
+  private async bettingRound() {
+    console.log('Starting betting round...');
+    this.state.currentBet = 0;
+    this.state.pot = 0;
+    while()
   }
 }

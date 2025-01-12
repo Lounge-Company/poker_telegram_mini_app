@@ -7,8 +7,7 @@ import { DeckManager } from './DeckManager'
 import { GameLoop } from '../core/GameLoop'
 
 export class GameManager {
-  private playerCards: Map<PlayerState, Card[]> = new Map()
-  private deck: Card[] = []
+
   state: GameState
   turnManager: TurnManager
   actionService: actionService
@@ -24,10 +23,6 @@ export class GameManager {
   startGame() {
     this.state.gameStarted = true
     this.gameLoop.startGameLoop()
-  }
-  initializeDeck() {
-    this.deck = this.deckManager.createDeck()
-    console.log('Deck initialized:', this.deck)
   }
   handlePlayerAction(
     playerId: string,

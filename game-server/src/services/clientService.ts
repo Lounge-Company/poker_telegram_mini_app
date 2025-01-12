@@ -1,5 +1,8 @@
-import { GameState } from "../rooms/schema/GameState";
+import { GameState } from '../rooms/schema/GameState'
 
 export class ClientService {
-  constructor(private state: GameState) {}
+  constructor() {}
+  sendMessage(client: any, message: string) {
+    client.send('message', message)
+  }
 }

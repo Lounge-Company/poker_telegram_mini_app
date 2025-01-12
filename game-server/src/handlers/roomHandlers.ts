@@ -36,10 +36,12 @@ export class RoomHandlers {
   }
 
   private handlePlayerReady(client: any) {
-    // refactor this
     const player = this.room.state.players.get(client.sessionId)
-    if (player) {
+    if (!player.ready) {
       this.room.state.readyPlayers++
+      const message = this.MessageService.createSystemMessage(
+        `Player ${player.name} is ready`
+      )
 
       if (
         this.room.state.readyPlayers === this.room.state.players.size &&
@@ -55,8 +57,7 @@ export class RoomHandlers {
     // refactor this
     const player = this.room.state.players.get(client.sessionId)
     if (player) {
-      player.ready = false
-      this.room.broadcast('playerUnready', client.sessionId)
+      this.room.state.readyPlayers--
     }
   }
 
