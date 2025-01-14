@@ -43,4 +43,9 @@ export class RoomManager {
     console.log('players :', this.state.players.keys())
     return true
   }
+  isPlayerSeated(playerId: string): Seat | undefined {
+    const seat = this.state.seats.find((s) => s.playerId === playerId)
+    if (!seat) return undefined
+    return seat
+  }
 }

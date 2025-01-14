@@ -12,4 +12,13 @@ export class GameeHandlers {
   private handlePlayerCheck(client: any) {
     const player = this.room.state.players.get(client.sessionId)
   }
+  private handlePlayerCalll(client: any) {
+    const player = this.room.state.players.get(client.sessionId)
+  }
+  private handlePlayerFold(client: any) {
+    const player = this.room.state.players.get(client.sessionId)
+  }
+  private handlePlayerBet(client: any, amount: number) {
+    const player = this.room.state.players.get(client.sessionId)
+  }
 }
