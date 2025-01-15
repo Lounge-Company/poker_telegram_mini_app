@@ -11,17 +11,19 @@ export class GameLoop {
   private deck: Card[] = []
   private gameloopDelay: number = 3000
   private turnManager: TurnManager
+  private gameManager: GameManager
   private state: GameState
   private deckManager: DeckManager
-  constructor(
-    state: GameState,
-    turnManager: TurnManager,
-    gameManager: GameManager
-  ) {
-    this.state = state
-    this.turnManager = turnManager
-  }
 
+  constructor(state: GameState) {
+    this.state = state
+    this.turnManager = new TurnManager(state)
+    this.gameManager = new GameManager(state)
+  }
+  async startGame() {
+    this.state.gameStarted = true
+    this.gameLoop()
+  }
   async gameLoop() {
     if (this.state.gameStarted) {
       console.log('Game loop running...')
@@ -36,6 +38,8 @@ export class GameLoop {
     console.log('Starting betting round...')
     this.state.currentBet = 0
     this.state.pot = 0
-    // while()
+    // while (this.turnManager.shouldContinueBettingRound()) {
+
+    // }
   }
 }

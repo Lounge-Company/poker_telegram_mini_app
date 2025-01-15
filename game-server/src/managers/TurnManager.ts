@@ -11,48 +11,29 @@ export class TurnManager {
   constructor(state: GameState) {
     this.state = state
   }
-  startTurnTimer() {
-    if (this.turnTimeout) {
-      clearTimeout(this.turnTimeout)
+  public shouldContinueBettingRound(): boolean {
+    return (
+      this.hasActivePlayers() && // минимум 1 активный игрок
+      !this.allBetsEqual() && // ставки не уравнены
+      this.getActivePlayersCount() > 1 // больше 1 игрока в игре
+    )
+  }
+  private allPlayersActed(): boolean {
+    for (const player of this.state.players.values()) {
+      if (!player.hasFolded && !player.isAllIn && !player.isMadeMove) {
+        return false
+      }
     }
-
-    this.turnTimeout = setTimeout(() => {
-      const currentPlayerId = this.getCurrentPlayerId()
-      if (currentPlayerId) {
-        const currentPlayer = this.state.players.get(currentPlayerId)
-        if (currentPlayer) {
-          currentPlayer.hasFolded = true
-          this.nextTurn()
+    return true
+  }
+  private allBetsEqual(): boolean {
+    for (const player of this.state.players.values()) {
+      if (!player.hasFolded && !player.isAllIn) {
+        if (player.currentBet !== this.state.currentBet) {
+          return false
         }
       }
-    }, this.TURN_TIME)
-  }
-  stopTurnTimer() {
-    if (this.turnTimeout) {
-      clearTimeout(this.turnTimeout)
     }
-  }
-  isPlayerTurn(playerId: string): boolean {
-    return this.state.currentTurn === playerId
-  }
-  getCurrentPlayerId() {
-    return this.state.currentTurn
-  }
-
-  public nextTurn() {
-    do {
-      this.currentPosition =
-        (this.currentPosition + 1) % this.playerOrder.length
-      const nextPlayer = this.state.players.get(
-        this.playerOrder[this.currentPosition]
-      )
-
-      if (!nextPlayer.hasFolded && !nextPlayer.isAllIn) {
-        this.state.currentTurn = nextPlayer.id
-        break
-      }
-    } while (true)
-
-    this.startTurnTimer()
+    return true
   }
 }

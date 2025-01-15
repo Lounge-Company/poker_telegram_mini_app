@@ -1,16 +1,16 @@
 import { Room } from 'colyseus'
-import { GameManager } from '../managers/GameManager'
 import { MessageService } from '../services/messageService'
 import { RoomManager } from '../managers/RoomManager'
 import { ClientService } from '../services/clientService'
+import { GameLoop } from '../core/GameLoop'
 
 export class RoomHandlers {
   MessageService: MessageService
   clientService: ClientService
   constructor(
     private room: Room,
-    private gameManager: GameManager,
-    private roomManager: RoomManager
+    private roomManager: RoomManager,
+    private gameLoop: GameLoop
   ) {
     this.MessageService = new MessageService()
     this.clientService = new ClientService()
@@ -43,7 +43,7 @@ export class RoomHandlers {
         this.room.state.readyPlayers === this.room.state.players.size &&
         this.room.state.players >= 2
       ) {
-        this.gameManager.startGame()
+        this.gameLoop.startGame()
         this.clientService.broadcastSystemMessage(this.room, 'Game started!')
       }
     }
