@@ -37,12 +37,16 @@ export class RoomHandlers {
   private handlePlayerReady(client: any) {
     const player = this.room.state.players.get(client.sessionId)
     if (!player.ready) {
+      player.ready = true
+      console.log(`Player ${client.sessionId} is ready`)
       this.room.state.readyPlayers++
-
+      console.log('ready players:', this.room.state.readyPlayers)
+      console.log('players in room:', this.room.state.players.size)
       if (
         this.room.state.readyPlayers === this.room.state.players.size &&
-        this.room.state.players >= 2
+        this.room.state.players.size >= 2
       ) {
+        this.room.state.readyPlayers = 0
         this.gameLoop.startGame()
         this.clientService.broadcastSystemMessage(this.room, 'Game started!')
       }
@@ -52,7 +56,8 @@ export class RoomHandlers {
   private handlePlayerUnready(client: any) {
     // refactor this
     const player = this.room.state.players.get(client.sessionId)
-    if (player) {
+    if (player.ready) {
+      player.ready = false
       this.room.state.readyPlayers--
     }
   }

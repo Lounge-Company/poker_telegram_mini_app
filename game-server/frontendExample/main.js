@@ -73,7 +73,7 @@ numberForm.addEventListener('submit', (event) => {
 const leaveSeatButton = document.getElementById('leaveSeat')
 leaveSeatButton.addEventListener('click', () => {
   if (room) {
-    room.send('leaveSeat')
+    room.send('leaveGame')
   }
 })
 // Event handlers for new buttons

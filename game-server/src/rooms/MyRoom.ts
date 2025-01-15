@@ -17,9 +17,11 @@ export class MyRoom extends Room<GameState> {
   onCreate(options: any) {
     this.setState(new GameState())
     this.RoomManager = new RoomManager(this.state)
+    this.GameLoop = new GameLoop(this.state)
     this.RoomHandlers = new RoomHandlers(this, this.RoomManager, this.GameLoop)
     this.MessageService = new MessageService()
     this.RoomHandlers.registerHandlers()
+    this.ClientService = new ClientService()
   }
 
   onJoin(client: Client) {
@@ -47,7 +49,7 @@ export class MyRoom extends Room<GameState> {
     this.state.players.delete(client.sessionId)
     this.state.spectators.delete(client.sessionId)
     this.ClientService.sendSystemMessage(
-      this,
+      client,
       `Player ${client.sessionId} left the game`
     )
     // Если в комнате осталось менее двух игроков, завершаем игру

@@ -10,7 +10,7 @@ export class ClientService {
   }
   sendSystemMessage(client: any, message: string) {
     const systemMessage = this.messageService.createSystemMessage(message)
-    client.send('systemMessage', systemMessage)
+    client.send('message', systemMessage)
   }
   broadcastMessage(room: any, message: string, player: any) {
     const broadcastMessage = this.messageService.createChatMessage(
@@ -21,6 +21,6 @@ export class ClientService {
   }
   broadcastSystemMessage(room: any, message: string) {
     const broadcastMessage = this.messageService.createSystemMessage(message)
-    room.broadcast('systemMessage', broadcastMessage)
+    room.broadcast('message', broadcastMessage)
   }
 }

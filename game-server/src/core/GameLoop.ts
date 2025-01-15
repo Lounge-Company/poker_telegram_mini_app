@@ -19,16 +19,20 @@ export class GameLoop {
     this.state = state
     this.turnManager = new TurnManager(state)
     this.gameManager = new GameManager(state)
+    this.deckManager = new DeckManager()
   }
-  async startGame() {
+  startGame() {
     this.state.gameStarted = true
     this.gameLoop()
   }
+  async stopGame() {
+    this.state.gameStarted = false
+  }
   async gameLoop() {
-    if (this.state.gameStarted) {
+    if (this.state.gameStarted && this.state.players.size >= 2) {
       console.log('Game loop running...')
       this.deck = this.deckManager.createDeck()
-      console.log('deck created :', this.deck)
+      // console.log('deck created :', this.deck)
       setTimeout(() => this.gameLoop(), this.gameloopDelay)
     } else {
       console.log('Game loop stopped.')
@@ -38,8 +42,6 @@ export class GameLoop {
     console.log('Starting betting round...')
     this.state.currentBet = 0
     this.state.pot = 0
-    // while (this.turnManager.shouldContinueBettingRound()) {
-
-    // }
+    while (this.turnManager.shouldContinueBettingRound()) {}
   }
 }
