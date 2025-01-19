@@ -39,8 +39,16 @@ export class RoomManager {
     if (seat) {
       seat.playerId = ''
     }
+    if (this.state.players.size < 2) {
+      this.state.gameStarted = false
+    }
     console.log('spectators :', this.state.spectators.keys())
     console.log('players :', this.state.players.keys())
     return true
+  }
+  isPlayerSeated(playerId: string): Seat | undefined {
+    const seat = this.state.seats.find((s) => s.playerId === playerId)
+    if (!seat) return undefined
+    return seat
   }
 }

@@ -1,17 +1,19 @@
 import { Room } from 'colyseus'
-import { GameManager } from '../managers/GameManager'
 import { MessageService } from '../services/messageService'
 import { RoomManager } from '../managers/RoomManager'
+import { ClientService } from '../services/clientService'
+import { GameLoop } from '../core/GameLoop'
 
 export class RoomHandlers {
   MessageService: MessageService
-
+  clientService: ClientService
   constructor(
     private room: Room,
-    private gameManager: GameManager,
-    private roomManager: RoomManager
+    private roomManager: RoomManager,
+    private gameLoop: GameLoop
   ) {
     this.MessageService = new MessageService()
+    this.clientService = new ClientService()
   }
 
   public registerHandlers() {
@@ -29,26 +31,25 @@ export class RoomHandlers {
     const player =
       this.room.state.players.get(client.sessionId) ||
       this.room.state.spectators.get(client.sessionId)
-    console.log('player :', player)
-    const chatMessage = this.MessageService.createChatMessage(player, message)
-    console.log('chatMessage :', chatMessage)
-    this.room.broadcast('message', chatMessage)
+    this.clientService.broadcastMessage(this.room, message, player)
   }
 
   private handlePlayerReady(client: any) {
     const player = this.room.state.players.get(client.sessionId)
+    if (!player) return
     if (!player.ready) {
+      player.ready = true
+      console.log(`Player ${client.sessionId} is ready`)
       this.room.state.readyPlayers++
-      const message = this.MessageService.createSystemMessage(
-        `Player ${player.name} is ready`
-      )
-
+      console.log('ready players:', this.room.state.readyPlayers)
+      console.log('players in room:', this.room.state.players.size)
       if (
         this.room.state.readyPlayers === this.room.state.players.size &&
-        this.room.state.players >= 2
+        this.room.state.players.size >= 2
       ) {
-        this.gameManager.startGame()
-        this.room.broadcast('gameStarted')
+        this.room.state.readyPlayers = 0
+        this.gameLoop.startGame()
+        this.clientService.broadcastSystemMessage(this.room, 'Game started!')
       }
     }
   }
@@ -56,7 +57,8 @@ export class RoomHandlers {
   private handlePlayerUnready(client: any) {
     // refactor this
     const player = this.room.state.players.get(client.sessionId)
-    if (player) {
+    if (player.ready) {
+      player.ready = false
       this.room.state.readyPlayers--
     }
   }
@@ -69,26 +71,26 @@ export class RoomHandlers {
     )
     if (!success) {
       console.log(`Player ${client.sessionId} failed to join to the game`)
-      const message = this.MessageService.createSystemMessage(
+      this.clientService.sendSystemMessage(
+        client,
         `seat ${seatNumber} is already taken`
       )
-      client.send('message', message)
       return
     }
     console.log(`Player ${client.sessionId} joined to the game`)
-    const message = this.MessageService.createSystemMessage(
-      `Joined at seat ${seatNumber}!`
+    this.clientService.sendSystemMessage(
+      client,
+      `You joined at seat ${seatNumber}`
     )
-    client.send('message', message)
   }
   private handlePlayerLeave(client: any) {
     const success = this.roomManager.handlePlayerLeaveGame(client.sessionId)
     if (success) {
       console.log(`Player ${client.sessionId} left the game`)
-      const message = this.MessageService.createSystemMessage(
+      this.clientService.broadcastSystemMessage(
+        this.room,
         `Player ${client.sessionId} left the game`
       )
-      this.room.broadcast('message', message)
     }
   }
 }

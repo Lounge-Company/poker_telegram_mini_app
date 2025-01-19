@@ -1,27 +1,25 @@
 import { Room, Client } from '@colyseus/core'
 import { PlayerState } from './schema/PlayerState'
 import { GameState } from './schema/GameState'
-import { GameManager } from '../managers/GameManager'
 import { RoomHandlers } from '../handlers/roomHandlers'
 import { MessageService } from '../services/messageService'
 import { RoomManager } from '../managers/RoomManager'
+import { GameLoop } from '../core/GameLoop'
+import { ClientService } from '../services/clientService'
 
 export class MyRoom extends Room<GameState> {
-  private GameManager: GameManager
   private RoomHandlers: RoomHandlers
-  private MessageService: MessageService
   private RoomManager: RoomManager
+  private GameLoop: GameLoop
+  private ClientService: ClientService
+
   onCreate(options: any) {
     this.setState(new GameState())
-    this.GameManager = new GameManager(this.state)
     this.RoomManager = new RoomManager(this.state)
-    this.RoomHandlers = new RoomHandlers(
-      this,
-      this.GameManager,
-      this.RoomManager
-    )
-    this.MessageService = new MessageService()
+    this.GameLoop = new GameLoop(this, this.state)
+    this.RoomHandlers = new RoomHandlers(this, this.RoomManager, this.GameLoop)
     this.RoomHandlers.registerHandlers()
+    this.ClientService = new ClientService()
   }
 
   onJoin(client: Client) {
@@ -34,10 +32,11 @@ export class MyRoom extends Room<GameState> {
     // Добавляем нового игрока в список наблюдателей в состоянии игры
     this.state.spectators.set(client.sessionId, newPlayer)
 
-    const systemMessage = this.MessageService.createSystemMessage(
+    this.ClientService.broadcastSystemMessage(
+      this,
       `Player ${client.sessionId} joined the room`
     )
-    this.broadcast('message', systemMessage)
+
     // Если в комнате достаточно игроков, начинаем игру
     // if (this.state.players.size >= 2 && !this.state.gameStarted) {
     //   this.startGame() // Запуск игры
@@ -47,10 +46,10 @@ export class MyRoom extends Room<GameState> {
     console.log(client.sessionId, 'left!')
     this.state.players.delete(client.sessionId)
     this.state.spectators.delete(client.sessionId)
-    const systemMessage = this.MessageService.createSystemMessage(
+    this.ClientService.sendSystemMessage(
+      client,
       `Player ${client.sessionId} left the game`
     )
-    this.broadcast('message', systemMessage)
     // Если в комнате осталось менее двух игроков, завершаем игру
     // if (this.state.players.size < 2) {
     //   this.GameManager.endGame()
