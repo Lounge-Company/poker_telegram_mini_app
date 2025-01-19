@@ -30,6 +30,24 @@ async function joinRoom() {
         console.warn('Unexpected message format:', message)
       }
     })
+
+    room.onMessage('playerCards', (cards) => {
+      console.log('Получены карты:', cards)
+
+      // Находим контейнер для карт игрока
+      const playerCardsContainer = document.getElementById('playerCards')
+
+      // Очищаем предыдущие карты
+      playerCardsContainer.innerHTML = ''
+
+      // Отображаем каждую карту
+      cards.forEach((card) => {
+        const cardElement = document.createElement('div')
+        cardElement.className = 'card'
+        cardElement.textContent = `${card.rank}${card.suit}`
+        playerCardsContainer.appendChild(cardElement)
+      })
+    })
   } catch (err) {
     console.error('Failed to join room:', err)
   }

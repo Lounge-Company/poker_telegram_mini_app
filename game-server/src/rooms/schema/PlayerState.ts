@@ -9,4 +9,5 @@ export class PlayerState extends Schema {
   @type('boolean') hasFolded = false
   @type('boolean') isAllIn = false
   @type('boolean') ready = false
+  @type('boolean') acted = false
 }

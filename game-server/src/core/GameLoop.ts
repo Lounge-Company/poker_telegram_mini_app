@@ -1,10 +1,11 @@
 import { GameManager } from '../managers/GameManager'
 import { GameState } from '../rooms/schema/GameState'
 import { TurnManager } from '../managers/TurnManager'
-import { delay } from '../utils/delay'
-import { PlayerState } from '../rooms/schema/PlayerState'
 import { Card } from '../rooms/schema/Card'
 import { DeckManager } from '../managers/DeckManager'
+import { MyRoom } from '../rooms/MyRoom'
+import { RoundManager } from '../managers/RoundManager'
+import { RoundType } from '../types/GameTypes'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
@@ -14,34 +15,45 @@ export class GameLoop {
   private gameManager: GameManager
   private state: GameState
   private deckManager: DeckManager
+  private roundManager: RoundManager
 
-  constructor(state: GameState) {
+  constructor(room: MyRoom, state: GameState) {
     this.state = state
     this.turnManager = new TurnManager(state)
-    this.gameManager = new GameManager(state)
+    this.roundManager = new RoundManager(state)
+    this.gameManager = new GameManager(room, state)
     this.deckManager = new DeckManager()
   }
   startGame() {
     this.state.gameStarted = true
     this.gameLoop()
   }
-  async stopGame() {
+  stopGame() {
     this.state.gameStarted = false
   }
   async gameLoop() {
     if (this.state.gameStarted && this.state.players.size >= 2) {
       console.log('Game loop running...')
+
+      // create deck
       this.deck = this.deckManager.createDeck()
-      // console.log('deck created :', this.deck)
+
+      // deal cards
+      this.playerCards = this.gameManager.dealCards(this.deck)
+
+      // main rounds loop
+      // while (this.roundManager.getCurrentRound() !== RoundType.SHOWDOWN) {
+      //   // betting round
+      //   while (this.roundManager.shouldContinueBettingRound()) {
+      //     this.turnManager.nextTurn()
+      //   }
+      // }
+
+      // start new game
+      this.roundManager.resetRound()
       setTimeout(() => this.gameLoop(), this.gameloopDelay)
     } else {
       console.log('Game loop stopped.')
     }
-  }
-  private async bettingRound() {
-    console.log('Starting betting round...')
-    this.state.currentBet = 0
-    this.state.pot = 0
-    while (this.turnManager.shouldContinueBettingRound()) {}
   }
 }

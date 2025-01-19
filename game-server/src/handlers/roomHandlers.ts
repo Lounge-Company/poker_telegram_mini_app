@@ -36,6 +36,7 @@ export class RoomHandlers {
 
   private handlePlayerReady(client: any) {
     const player = this.room.state.players.get(client.sessionId)
+    if (!player) return
     if (!player.ready) {
       player.ready = true
       console.log(`Player ${client.sessionId} is ready`)

@@ -9,7 +9,6 @@ import { ClientService } from '../services/clientService'
 
 export class MyRoom extends Room<GameState> {
   private RoomHandlers: RoomHandlers
-  private MessageService: MessageService
   private RoomManager: RoomManager
   private GameLoop: GameLoop
   private ClientService: ClientService
@@ -17,9 +16,8 @@ export class MyRoom extends Room<GameState> {
   onCreate(options: any) {
     this.setState(new GameState())
     this.RoomManager = new RoomManager(this.state)
-    this.GameLoop = new GameLoop(this.state)
+    this.GameLoop = new GameLoop(this, this.state)
     this.RoomHandlers = new RoomHandlers(this, this.RoomManager, this.GameLoop)
-    this.MessageService = new MessageService()
     this.RoomHandlers.registerHandlers()
     this.ClientService = new ClientService()
   }

@@ -2,25 +2,23 @@ import { GameState } from '../rooms/schema/GameState'
 import { PlayerState } from '../rooms/schema/PlayerState'
 export class TurnManager {
   private state: GameState
-  private playerOrder: string[] = []
-  private dealerPosition: number = 0
-  private currentPosition: number = 0
-  private turnTimeout: NodeJS.Timeout
   private readonly TURN_TIME = 30000
 
   constructor(state: GameState) {
     this.state = state
   }
-  public shouldContinueBettingRound(): boolean {
-    return (
-      this.hasActivePlayers() && // минимум 1 активный игрок
-      !this.allBetsEqual() && // ставки не уравнены
-      this.getActivePlayersCount() > 1 // больше 1 игрока в игре
-    )
-  }
-  private allPlayersActed(): boolean {
+
+  private hasActivePlayers(): boolean {
     for (const player of this.state.players.values()) {
-      if (!player.hasFolded && !player.isAllIn && !player.isMadeMove) {
+      if (!player.hasFolded && !player.isAllIn) {
+        return true
+      }
+    }
+    return false
+  }
+  public allPlayersActed(): boolean {
+    for (const player of this.state.players.values()) {
+      if (!player.acted) {
         return false
       }
     }
@@ -35,5 +33,18 @@ export class TurnManager {
       }
     }
     return true
+  }
+  public getCurrentPlayer(): PlayerState | undefined {
+    return this.state.players.get(this.state.currentTurn)
+  }
+  public waitForPlayerAction(player: PlayerState): Promise<void> {
+    return new Promise((resolve) => {
+      const checkInterval = setInterval(() => {
+        if (player.acted) {
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100)
+    })
   }
 }
