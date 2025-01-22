@@ -6,6 +6,10 @@ async function joinRoom() {
   try {
     room = await client.joinOrCreate('my_room')
     console.log('Joined room successfully!', room)
+    room.state.seats.onChange((value, key) => {
+      console.log(key, 'changed to', value)
+      updateSeats()
+    })
     myId = room.sessionId
     // Listen for messages from the server
     room.onMessage('message', (message) => {
@@ -101,3 +105,29 @@ readyButton.addEventListener('click', () => {
     room.send('ready')
   }
 })
+function updateSeats() {
+  console.log('Обновляем места:', room.state.seats)
+
+  room.state.seats.forEach((seat, index) => {
+    // Ищем элемент места по id
+    const seatElement = document.getElementById(`seat-${index}`)
+    if (!seatElement) {
+      console.log(`Элемент места ${index} не найден`)
+      return
+    }
+
+    // Если место занято игроком
+    if (seat.playerId) {
+      const player = room.state.players.get(seat.playerId)
+      seatElement.innerHTML = `
+              <div>Место ${index}</div>
+              <div>${player.name}</div>
+              <div>Фишки: ${player.chips}</div>
+              ${player.id === room.state.currentTurn ? '<div>Текущий ход</div>' : ''}
+          `
+    } else {
+      // Если место пустое
+      seatElement.innerHTML = `Пустое место ${index}`
+    }
+  })
+}

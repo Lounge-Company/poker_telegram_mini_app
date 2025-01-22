@@ -5,9 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Colyseus Message Handling</title>
     <script src="https://cdn.jsdelivr.net/npm/colyseus.js/dist/colyseus.min.js"></script>
+    <link rel="stylesheet" href="style.css" />
   </head>
   <body>
+    <div id="poker-table">
+      <div id="seats-container">
+        <div class="seat" id="seat-0">Empty Seat 0</div>
+        <div class="seat" id="seat-1">Empty Seat 1</div>
+        <div class="seat" id="seat-2">Empty Seat 2</div>
+        <div class="seat" id="seat-3">Empty Seat 3</div>
+        <div class="seat" id="seat-4">Empty Seat 4</div>
+        <div class="seat" id="seat-5">Empty Seat 5</div>
+      </div>
+    </div>
     <h1>Colyseus Message Handling</h1>
+
     <form id="messageForm">
       <input
         type="text"
@@ -32,9 +44,10 @@
       <button type="submit">take a seat</button>
       <button id="leaveSeat">leave seat</button>
     </form>
+
     <button id="ready">ready</button>
     <button id="unready">unready</button>
     <div id="playerCards"></div>
-    <script src="main.js"></script>
+    <script type="module" src="./js/main.js"></script>
   </body>
 </html>

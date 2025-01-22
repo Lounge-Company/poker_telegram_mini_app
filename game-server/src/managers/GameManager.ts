@@ -19,20 +19,13 @@ export class GameManager {
     this.deckManager = new DeckManager()
     this.clientService = new ClientService()
   }
-  hasActivePlayers(): boolean {
-    for (const player of this.state.players.values()) {
-      if (!player.hasFolded && !player.isAllIn) {
-        return true
-      }
-    }
-    return false
-  }
+
   dealCards(deck: Card[]): Map<string, Card[]> {
     const playerCards = new Map<string, Card[]>()
     for (const [playerId, player] of this.state.players) {
       const cards: Card[] = [
         this.deckManager.drawCard(deck),
-        this.deckManager.drawCard(deck)
+        this.deckManager.drawCard(deck),
       ]
       const client = this.room.clients.find(
         (c: { sessionId: string }) => c.sessionId === playerId
@@ -41,6 +34,19 @@ export class GameManager {
       playerCards.set(playerId, cards)
     }
     return playerCards
+  }
+  dealCommunityCards(deck: Card[], count: number): Card[] {
+    const communityCards: Card[] = []
+    for (let i = 0; i < count; i++) {
+      const card = this.deckManager.drawCard(deck)
+      communityCards.push(card)
+    }
+    this.clientService.broadcastCommunityCards(this.room, communityCards)
+    return communityCards
+  }
+  resetGame() {}
+  determineWinner(): string {
+    return ''
   }
   initializeBlinds() {}
 }
