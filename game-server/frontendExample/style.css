@@ -1,0 +1,44 @@
+#poker-table {
+  width: 800px;
+  height: 400px;
+  background: #2a7e19;
+  border-radius: 200px;
+  position: relative;
+  margin: 50px auto;
+}
+
+.seat {
+  width: 100px;
+  height: 100px;
+  background: #333;
+  border-radius: 50%;
+  position: absolute;
+  color: white;
+  text-align: center;
+  padding: 10px;
+}
+
+#seat-0 {
+  left: 350px;
+  top: 20px;
+}
+#seat-1 {
+  left: 620px;
+  top: 100px;
+}
+#seat-2 {
+  left: 620px;
+  top: 250px;
+}
+#seat-3 {
+  left: 350px;
+  top: 270px;
+}
+#seat-4 {
+  left: 60px;
+  top: 250px;
+}
+#seat-5 {
+  left: 60px;
+  top: 100px;
+}

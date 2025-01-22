@@ -6,19 +6,23 @@ import { MessageService } from '../services/messageService'
 import { RoomManager } from '../managers/RoomManager'
 import { GameLoop } from '../core/GameLoop'
 import { ClientService } from '../services/clientService'
+import { GameHandlers } from '../handlers/gameHandlers'
 
 export class MyRoom extends Room<GameState> {
   private RoomHandlers: RoomHandlers
   private RoomManager: RoomManager
   private GameLoop: GameLoop
   private ClientService: ClientService
+  private GameHandlers: GameHandlers
 
   onCreate(options: any) {
     this.setState(new GameState())
+    this.setSeatReservationTime(60)
     this.RoomManager = new RoomManager(this.state)
     this.GameLoop = new GameLoop(this, this.state)
     this.RoomHandlers = new RoomHandlers(this, this.RoomManager, this.GameLoop)
     this.RoomHandlers.registerHandlers()
+    this.GameHandlers = new GameHandlers(this, this.state)
     this.ClientService = new ClientService()
   }
 
@@ -36,18 +40,19 @@ export class MyRoom extends Room<GameState> {
       this,
       `Player ${client.sessionId} joined the room`
     )
-
-    // Если в комнате достаточно игроков, начинаем игру
-    // if (this.state.players.size >= 2 && !this.state.gameStarted) {
-    //   this.startGame() // Запуск игры
-    // }
   }
   onLeave(client: Client) {
     console.log(client.sessionId, 'left!')
-    this.state.players.delete(client.sessionId)
-    this.state.spectators.delete(client.sessionId)
-    this.ClientService.sendSystemMessage(
-      client,
+    const seat = this.state.seats.find((s) => s.playerId === client.sessionId)
+    if (seat) {
+      seat.playerId = ''
+    }
+    const player = this.state.players.get(client.sessionId)
+    if (player) this.state.players.delete(client.sessionId)
+    const spectator = this.state.spectators.get(client.sessionId)
+    if (spectator) this.state.spectators.delete(client.sessionId)
+    this.ClientService.broadcastSystemMessage(
+      this,
       `Player ${client.sessionId} left the game`
     )
     // Если в комнате осталось менее двух игроков, завершаем игру

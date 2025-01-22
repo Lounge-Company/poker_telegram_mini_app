@@ -2,7 +2,6 @@ import { GameState } from '../rooms/schema/GameState'
 import { RoundType } from '../types/GameTypes'
 import { TurnManager } from './TurnManager'
 export class RoundManager {
-  private currentRound: RoundType = RoundType.PREFLOP
   private state: GameState
   private turnManager: TurnManager
   constructor(state: GameState) {
@@ -10,49 +9,31 @@ export class RoundManager {
     this.turnManager = new TurnManager(state)
   }
   getCurrentRound() {
-    return this.currentRound
+    return this.state.gamePhase
   }
-  public shouldContinueBettingRound(): boolean {
+  shouldContinueBettingRound(): boolean {
     return this.turnManager.allPlayersActed() // сходили ли все игроки?
   }
-  nextRound() {
-    switch (this.currentRound) {
+  resetRound() {
+    this.state.gamePhase = RoundType.PREFLOP
+  }
+  nextRound(round: RoundType | undefined) {
+    switch (this.state.gamePhase) {
       case RoundType.PREFLOP:
-        this.currentRound = RoundType.FLOP
-        this.state.gamePhase = 'flop'
+        this.state.gamePhase = round | RoundType.FLOP
         break
       case RoundType.FLOP:
-        this.currentRound = RoundType.TURN
+        this.state.gamePhase = RoundType.TURN
         break
       case RoundType.TURN:
-        this.currentRound = RoundType.RIVER
+        this.state.gamePhase = RoundType.RIVER
         break
       case RoundType.RIVER:
-        this.currentRound = RoundType.SHOWDOWN
+        this.state.gamePhase = RoundType.SHOWDOWN
         break
       case RoundType.SHOWDOWN:
-        this.currentRound = RoundType.PREFLOP
-        // move dealer index
-        this.moveDealer()
+        this.state.gamePhase = RoundType.PREFLOP
         break
     }
-  }
-  resetRound() {
-    this.currentRound = RoundType.PREFLOP
-  }
-  private moveDealer() {
-    const currentDealerSeatIndex = this.state.seats.findIndex(
-      (seat) => seat.playerId === this.state.dealerPosition
-    )
-
-    const nextDealerSeatIndex =
-      (currentDealerSeatIndex + 1) % this.state.seats.length
-
-    let newDealerIndex = nextDealerSeatIndex
-    while (!this.state.seats[newDealerIndex].playerId) {
-      newDealerIndex = (newDealerIndex + 1) % this.state.seats.length
-    }
-
-    this.state.dealerPosition = this.state.seats[newDealerIndex].playerId
   }
 }

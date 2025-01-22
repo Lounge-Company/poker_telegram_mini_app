@@ -3,7 +3,7 @@ import { Seat } from '../rooms/schema/Seat'
 
 export class RoomManager {
   constructor(private state: GameState) {
-    for (let i = 0; i < 9; i++) {
+    for (let i = 0; i < 6; i++) {
       const seat = new Seat()
       seat.index = i
       seat.playerId = ''
@@ -22,11 +22,11 @@ export class RoomManager {
       this.state.players.set(playerId, spectator)
       this.state.spectators.delete(playerId)
       seat.playerId = playerId
-      console.log('seats :', JSON.stringify(this.state.seats))
+      // console.log('seats :', JSON.stringify(this.state.seats))
     }
-
-    console.log('spectators :', this.state.spectators.keys())
-    console.log('players :', this.state.players.keys())
+    console.log('player name ', this.state.players.get(playerId).name)
+    // console.log('spectators :', this.state.spectators.keys())
+    // console.log('players :', this.state.players.keys())
     return true
   }
 

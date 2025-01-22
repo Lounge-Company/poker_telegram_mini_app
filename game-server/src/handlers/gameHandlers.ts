@@ -1,25 +1,26 @@
 import { Room } from 'colyseus'
 import { GameManager } from '../managers/GameManager'
 import { RoomManager } from '../managers/RoomManager'
+import { GameState } from '../rooms/schema/GameState'
+import { TurnValidator } from '../midleware/TurnValidator'
 
-export class GameeHandlers {
-  constructor(
-    private room: Room,
-    private gameManager: GameManager,
-    private roomManager: RoomManager
-  ) {}
+export class GameHandlers {
+  constructor(private room: Room, private state: GameState) {}
   registerHandlers() {
-    this.room.onMessage('bet', this.handlePlayerBet.bind(this))
-    this.room.onMessage('check', this.handlePlayerCheck.bind(this))
-    this.room.onMessage('call', this.handlePlayerCalll.bind(this))
-    this.room.onMessage('fold', this.handlePlayerFold.bind(this))
-    // this.room.onMessage('raise', this.handlePlayerRaise.bind(this))
+    const validateTurn = TurnValidator.validate(this.state)
+    this.room.onMessage('bet', validateTurn(this.handlePlayerBet.bind(this)))
+    this.room.onMessage('check', validateTurn(this.handlePlayerCheck.bind(this)))
+    this.room.onMessage('call', validateTurn(this.handlePlayerCall.bind(this)))
+    this.room.onMessage('fold', validateTurn(this.handlePlayerFold.bind(this)))
+  }
+  private isCurrentPlayer(playerId: string): boolean {
+    return playerId === this.state.currentTurn
   }
   private handlePlayerCheck(client: any) {
     const player = this.room.state.players.get(client.sessionId)
     player.acted = true
   }
-  private handlePlayerCalll(client: any) {
+  private handlePlayerCall(client: any) {
     const player = this.room.state.players.get(client.sessionId)
     player.acted = true
   }
@@ -28,7 +29,9 @@ export class GameeHandlers {
     player.acted = true
   }
   private handlePlayerBet(client: any, amount: number) {
+    if (!this.isCurrentPlayer(client.sessionId)) return
     const player = this.room.state.players.get(client.sessionId)
     player.acted = true
+    player.currentBet = amount
   }
 }
