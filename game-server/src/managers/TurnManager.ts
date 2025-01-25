@@ -3,7 +3,7 @@ import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
 export class TurnManager {
   private state: GameState
-  private readonly TURN_TIME = 30000
+  private readonly TURN_TIME = 2000
   private clientService: ClientService
 
   constructor(state: GameState) {
@@ -18,6 +18,10 @@ export class TurnManager {
       }
     }
     return false
+  }
+  getStartingPlayer(): string {
+    const firstOccupiedSeat = this.state.seats.find((seat) => seat.playerId !== '')
+    return firstOccupiedSeat.playerId
   }
   public allPlayersActed(): boolean {
     for (const player of this.state.players.values()) {
@@ -40,44 +44,54 @@ export class TurnManager {
   public getCurrentPlayer(): PlayerState | undefined {
     return this.state.players.get(this.state.currentTurn)
   }
-  getNextTurn(): string | null {
+  private isPlayerEligibleForTurn(playerId: string): boolean {
+    const player = this.state.players.get(playerId)
+    return playerId && !player?.hasFolded && !player?.isAllIn && !player?.acted
+  }
+
+  getNextTurn(): string | undefined {
+    // Если активных игроков нет, сразу выходим
+    // if (!this.hasActivePlayers()) {
+    //   return undefined
+    // }
+
     const currentSeatIndex = this.state.seats.findIndex(
       (seat) => seat.playerId === this.state.currentTurn
     )
 
-    let nextIndex = (currentSeatIndex + 1) % this.state.seats.length
+    for (let i = 0; i <= this.state.seats.length; i++) {
+      const nextIndex = (currentSeatIndex + i) % this.state.seats.length
+      const playerId = this.state.seats[nextIndex].playerId
+      const player = this.state.players.get(playerId)
 
-    // Находим следующее занятое место
-    while (!this.state.seats[nextIndex].playerId) {
-      nextIndex = (nextIndex + 1) % this.state.seats.length
-      if (nextIndex === currentSeatIndex) return null
+      if (player && !player.acted) {
+        console.log('next index ', nextIndex)
+        console.log('player id ', playerId)
+        return (this.state.currentTurn = playerId)
+      }
     }
 
-    this.state.currentTurn = this.state.seats[nextIndex].playerId
-    return this.state.currentTurn
+    return undefined
   }
-  public waitForPlayerAction(room: any, player: PlayerState): Promise<void> {
+  public async waitForPlayerAction(room: any, player: PlayerState): Promise<void> {
     return new Promise((resolve) => {
-      const client = room.clients.find(
-        (c: { sessionId: string }) => c.sessionId === player.id
-      )
+      this.clientService.broadcastTurn(room, player.id)
 
-      this.clientService.requestAction(client)
-
-      const checkInterval = setInterval(() => {
-        if (player.acted) {
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100)
-
-      setTimeout(() => {
+      const timer = setTimeout(() => {
         if (!player.acted) {
           player.hasFolded = true
           player.acted = true
           resolve()
         }
-      }, 10000)
+      }, this.TURN_TIME)
+
+      const checkInterval = setInterval(() => {
+        if (player.acted) {
+          clearTimeout(timer)
+          clearInterval(checkInterval)
+          resolve()
+        }
+      }, 100)
     })
   }
 }

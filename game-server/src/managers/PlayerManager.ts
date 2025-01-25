@@ -36,13 +36,10 @@ export class PlayerManager {
 
     this.state.dealerId = this.state.seats[newDealerIndex].playerId
   }
-  resetPlayers() {
-    for (const player of this.state.players.values()) {
-      player.currentBet = 0
-      player.hasFolded = false
-      player.isAllIn = false
+  async resetPlayers() {
+    this.state.players.forEach((player) => {
       player.acted = false
-    }
+    })
   }
   leaveGame(playerId: string) {
     const player = this.state.players.get(playerId)

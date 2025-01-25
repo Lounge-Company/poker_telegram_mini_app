@@ -21,9 +21,11 @@ export class MyRoom extends Room<GameState> {
     this.RoomManager = new RoomManager(this.state)
     this.GameLoop = new GameLoop(this, this.state)
     this.RoomHandlers = new RoomHandlers(this, this.RoomManager, this.GameLoop)
-    this.RoomHandlers.registerHandlers()
     this.GameHandlers = new GameHandlers(this, this.state)
     this.ClientService = new ClientService()
+
+    this.RoomHandlers.registerHandlers()
+    this.GameHandlers.registerHandlers()
   }
 
   onJoin(client: Client) {

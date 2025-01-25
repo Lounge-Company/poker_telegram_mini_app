@@ -42,3 +42,9 @@
   left: 60px;
   top: 100px;
 }
+.active-turn {
+  background-color: #ffd700;
+  border: 2px solid #ff8c00;
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  transition: all 0.3s ease;
+}

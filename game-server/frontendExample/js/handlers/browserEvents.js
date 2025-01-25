@@ -8,6 +8,7 @@ export class BrowserEvents {
     this.setupMessageForm()
     this.setupGameForms()
     this.setupButtons()
+    this.setupCheck()
   }
 
   setupMessageForm() {
@@ -43,6 +44,13 @@ export class BrowserEvents {
 
     readyButton.addEventListener('click', () => {
       this.room.send('ready')
+    })
+  }
+  setupCheck() {
+    const checkButton = document.getElementById('check')
+    checkButton.addEventListener('click', () => {
+      console.log('setupCheck called')
+      this.room.send('check')
     })
   }
 }

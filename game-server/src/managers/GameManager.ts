@@ -1,6 +1,6 @@
 import { TurnManager } from './TurnManager'
 import { GameState } from '../rooms/schema/GameState'
-import { actionService } from '../services/actionService'
+import { ActionService } from '../services/actionService'
 import { DeckManager } from './DeckManager'
 import { Card } from '../rooms/schema/Card'
 import { ClientService } from '../services/clientService'
@@ -8,7 +8,7 @@ import { ClientService } from '../services/clientService'
 export class GameManager {
   state: GameState
   turnManager: TurnManager
-  actionService: actionService
+  actionService: ActionService
   deckManager: DeckManager
   clientService: ClientService
   room: any

@@ -8,6 +8,7 @@ export class RoomEvents {
     this.setupStateChanges()
     this.setupMessages()
     this.setupGameEvents()
+    this.setupGameTurns()
     // this.setupSeatsChanges()
   }
 
@@ -34,6 +35,20 @@ export class RoomEvents {
     this.room.onMessage('playerCards', (cards) => {
       console.log('Received cards:', cards)
       this.ui.displayCards(cards)
+    })
+  }
+  setupGameTurns() {
+    this.room.onMessage('turn', (playerId) => {
+      const currentActive = document.querySelector('.active-turn')
+      if (currentActive) {
+        currentActive.classList.remove('active-turn')
+      }
+
+      const seatIndex = this.room.state.seats.findIndex(
+        (seat) => seat.playerId === playerId
+      )
+
+      this.ui.highlightSeat(seatIndex)
     })
   }
 }
