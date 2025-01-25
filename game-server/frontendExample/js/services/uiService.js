@@ -18,12 +18,12 @@ export class UIService {
           return console.log('Player not found')
         }
         seatElement.innerHTML = `
-                <div>Место ${index}</div>
+                <div>Место ${index + 1}</div>
                 <div>${player.name}</div>
                 <div>Фишки: ${player.chips}</div>
             `
       } else {
-        seatElement.innerHTML = `место ${index}`
+        seatElement.innerHTML = `место ${index + 1}`
       }
     })
   }
@@ -45,5 +45,27 @@ export class UIService {
     } else {
       console.warn('Unexpected message format:', message)
     }
+  }
+  displayCards(cards) {
+    const playerCardsContainer = document.getElementById('playerCards')
+
+    // Очищаем предыдущие карты
+    playerCardsContainer.innerHTML = ''
+
+    // Отображаем каждую карту
+    cards.forEach((card) => {
+      const cardElement = document.createElement('div')
+      cardElement.className = 'card'
+      cardElement.textContent = `${card.rank}${card.suit}`
+      playerCardsContainer.appendChild(cardElement)
+    })
+  }
+  highlightSeat(seatIndex) {
+    const seatElement = document.getElementById(`seat-${seatIndex}`)
+    seatElement.classList.add('active-turn')
+  }
+  removeHighlightSeat(seatIndex) {
+    const seatElement = document.getElementById(`seat-${seatIndex}`)
+    seatElement.classList.remove('active-turn')
   }
 }

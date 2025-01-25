@@ -63,6 +63,10 @@ export class RoomHandlers {
     }
   }
   private handlePlayerJoin(client: any, seatNumber: number) {
+    if (typeof seatNumber !== 'number') {
+      this.clientService.sendSystemMessage(client, 'Invalid seat number')
+      return
+    }
     const success = this.roomManager.handlePlayerJoinToGame(
       client.sessionId,
       seatNumber
@@ -75,8 +79,11 @@ export class RoomHandlers {
       )
       return
     }
-    console.log(`Player ${client.sessionId} joined to the game`)
-    this.clientService.sendSystemMessage(client, `You joined at seat ${seatNumber}`)
+    console.log(`Player ${client.sessionId} joined to at seat ${seatNumber}`)
+    this.clientService.broadcastSystemMessage(
+      this.room,
+      `Player ${client.sessionId} joined to at seat ${seatNumber}`
+    )
   }
   private handlePlayerLeave(client: any) {
     const seatNumber = this.room.state.seats.find(
@@ -85,10 +92,10 @@ export class RoomHandlers {
     const success = this.roomManager.handlePlayerLeaveGame(client.sessionId)
 
     if (success) {
-      console.log(`Player ${client.sessionId} left ${seatNumber + 1} seat`)
+      console.log(`Player ${client.sessionId} left seat ${seatNumber + 1}`)
       this.clientService.broadcastSystemMessage(
         this.room,
-        `Player ${client.sessionId} left ${seatNumber + 1} seat`
+        `Player ${client.sessionId} left seat ${seatNumber + 1}`
       )
     }
   }

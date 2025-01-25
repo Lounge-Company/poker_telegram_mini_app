@@ -5,13 +5,12 @@ import { Card } from '../rooms/schema/Card'
 import { DeckManager } from '../managers/DeckManager'
 import { MyRoom } from '../rooms/MyRoom'
 import { RoundManager } from '../managers/RoundManager'
-import { RoundType } from '../types/GameTypes'
 import { PlayerManager } from '../managers/PlayerManager'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
   private deck: Card[] = []
-  private gameloopDelay: number = 3000
+  private gameloopDelay: number = 0
   private turnManager: TurnManager
   private gameManager: GameManager
   private state: GameState
@@ -31,6 +30,7 @@ export class GameLoop {
   }
   startGame() {
     this.state.gameStarted = true
+    this.state.currentTurn = this.turnManager.getStartingPlayer()
     this.gameLoop()
   }
   stopGame() {
@@ -41,30 +41,39 @@ export class GameLoop {
       console.log('Game loop running...')
 
       // create deck
-      this.deck = this.deckManager.createDeck()
+      // this.deck = this.deckManager.createDeck()
 
-      // deal cards
-      this.playerCards = this.gameManager.dealCards(this.deck)
+      // // deal cards
+      // this.playerCards = this.gameManager.dealCards(this.deck)
 
       // start betting round
 
-      this.bettingRound()
-
-      this.roundManager.resetRound()
+      await this.bettingRound()
+      this.playerManager.resetPlayers()
+      // this.roundManager.resetRound()
       setTimeout(() => this.gameLoop(), this.gameloopDelay)
     } else {
       console.log('Game loop stopped.')
     }
   }
-  private async bettingRound() {
-    const currentPlayer = this.state.players.get(this.state.currentTurn)
+  private async bettingRound(): Promise<boolean> {
+    this.state.currentTurn = this.turnManager.getStartingPlayer()
+    while (!this.turnManager.allPlayersActed()) {
+      console.log('============================')
+      let currentPlayer = this.state.players.get(this.state.currentTurn)
+      console.log('Current turn: ', this.state.currentTurn)
+      console.log(`Current player: ${currentPlayer?.name} - ${currentPlayer?.acted}`)
+      if (!currentPlayer) {
+        return true
+      }
 
-    if (currentPlayer) {
       await this.turnManager.waitForPlayerAction(this.room, currentPlayer)
       const nextTurn = this.turnManager.getNextTurn()
-      if (nextTurn) {
-        this.bettingRound()
+
+      if (!nextTurn) {
+        return true
       }
     }
+    return true
   }
 }

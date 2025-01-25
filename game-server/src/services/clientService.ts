@@ -14,10 +14,7 @@ export class ClientService {
     client.send('message', systemMessage)
   }
   broadcastMessage(room: any, message: string, player: any) {
-    const broadcastMessage = this.messageService.createChatMessage(
-      player,
-      message
-    )
+    const broadcastMessage = this.messageService.createChatMessage(player, message)
     room.broadcast('message', broadcastMessage)
   }
   broadcastSystemMessage(room: any, message: string) {
@@ -30,7 +27,8 @@ export class ClientService {
   broadcastCommunityCards(room: any, cards: Card[]) {
     room.broadcast('communityCards', cards)
   }
-  requestAction(client: any) {
-    client.send('requestAction')
+  broadcastTurn(room: any, playerId: string) {
+    console.log('broadcastTurn', playerId)
+    room.broadcast('turn', playerId)
   }
 }
