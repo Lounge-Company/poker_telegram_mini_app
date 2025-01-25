@@ -1,4 +1,5 @@
-import ChatRoom from "../ChatRoom/ChatRoom";
+import PokerRoom from "../PokerRoom/PokerRoom";
+import Seat from "../PokerRoom/Seat";
 
 const Sandbox = () => {
   return (
@@ -12,12 +13,13 @@ const Sandbox = () => {
     >
       <div
         style={{
-          width: "400px",
-          height: "500px",
+          width: "500px",
+          height: "700px",
           margin: "0 auto"
+          // border: "1px solid #ccc"
         }}
       >
-        <ChatRoom />
+        {<PokerRoom />}
       </div>
     </div>
   );

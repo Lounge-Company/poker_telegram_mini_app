@@ -30,6 +30,11 @@ const ChatRoom = () => {
     messageEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages]);
 
+  const createMessage = (username: string, message: string): Message => {
+    const newMessage: Message = { username, message };
+    return newMessage;
+  };
+
   useEffect(() => {
     const connectToRoom = async () => {
       const client = new Client("ws://localhost:2567");
@@ -40,10 +45,11 @@ const ChatRoom = () => {
 
         // Listen for messages from the server
         joinedRoom.onMessage("message", (message) => {
-          const transformedMessage: Message = {
-            username: message.playerName,
-            message: message.message
-          };
+          const transformedMessage = createMessage(
+            message.playerName,
+            message.message
+          );
+
           setMessages((prevMessages) => [...prevMessages, transformedMessage]);
           console.log("Received message:", transformedMessage);
         });
