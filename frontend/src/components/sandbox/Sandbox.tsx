@@ -1,5 +1,4 @@
 import PokerRoom from "../PokerRoom/PokerRoom";
-import Seat from "../PokerRoom/Seat";
 
 const Sandbox = () => {
   return (

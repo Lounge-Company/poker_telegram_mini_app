@@ -6,9 +6,19 @@ interface SeatProps {
   dx?: number;
   dy?: number;
   num: number;
+  onClick: (seatNumber: number) => void;
+  isOccupied?: boolean;
 }
 
-const Seat = ({ x, y, num, dx = 0, dy = 0 }: SeatProps) => {
+const Seat = ({
+  x,
+  y,
+  num,
+  dx = 0,
+  dy = 0,
+  onClick,
+  isOccupied
+}: SeatProps) => {
   return (
     <div
       style={{
@@ -17,12 +27,15 @@ const Seat = ({ x, y, num, dx = 0, dy = 0 }: SeatProps) => {
         top: `${y}%`,
         width: "150px",
         height: "100px",
-        border: "1px dashed #ccc",
+        border: `1px dashed ${isOccupied ? "#000" : "#ccc"}`,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",
         borderRadius: "16px",
         transform: `translate(${dx}%, ${dy}%)`
+      }}
+      onClick={() => {
+        onClick(num);
       }}
     >
       Seat {num}
