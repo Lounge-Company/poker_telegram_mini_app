@@ -17,10 +17,24 @@ export class GameHandlers {
     this.room.onMessage('fold', validateTurn(this.handlePlayerFold.bind(this)))
   }
 
+  /**
+   * Handles player's check action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("check");
+   */
   private handlePlayerCheck = (client: any) => {
     this.actionService.check(client.sessionId)
   }
 
+  /**
+   * Handles player's call action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("call");
+   */
   private handlePlayerCall(client: any) {
     const player = this.room.state.players.get(client.sessionId)
     player.acted = true

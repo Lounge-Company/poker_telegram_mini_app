@@ -49,6 +49,8 @@ export class GameLoop {
       // start betting round
 
       await this.bettingRound()
+
+      // start new game
       this.playerManager.resetPlayers()
       // this.roundManager.resetRound()
       setTimeout(() => this.gameLoop(), this.gameloopDelay)
@@ -57,7 +59,6 @@ export class GameLoop {
     }
   }
   private async bettingRound(): Promise<boolean> {
-    this.state.currentTurn = this.turnManager.getStartingPlayer()
     while (!this.turnManager.allPlayersActed()) {
       console.log('============================')
       let currentPlayer = this.state.players.get(this.state.currentTurn)
@@ -74,6 +75,7 @@ export class GameLoop {
         return true
       }
     }
+    this.state.currentTurn = this.turnManager.getStartingPlayer()
     return true
   }
 }
