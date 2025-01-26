@@ -24,9 +24,28 @@ export class ClientService {
   sendPlayerCards(client: any, cards: Card[]) {
     client.send('playerCards', cards)
   }
+  /**
+   * broadcasting cards to all clients
+   *
+   * @example
+   * // Client side
+   * this.room.onMessage('playerCards', (cards) => {
+   *  console.log('Received cards:', cards)
+   *   this.ui.displayCards(cards)
+   * })
+   */
   broadcastCommunityCards(room: any, cards: Card[]) {
     room.broadcast('communityCards', cards)
   }
+  /**
+   * broadcasting turn to all clients
+   *
+   * @example
+   * // Client side
+   *this.room.onMessage('turn', (playerId) => {
+   *  console.log('turn', playerId)
+   * })
+   */
   broadcastTurn(room: any, playerId: string) {
     console.log('broadcastTurn', playerId)
     room.broadcast('turn', playerId)
