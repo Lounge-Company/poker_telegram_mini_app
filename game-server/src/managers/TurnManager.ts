@@ -3,7 +3,7 @@ import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
 export class TurnManager {
   private state: GameState
-  private readonly TURN_TIME = 2000
+  private readonly TURN_TIME = 5000
   private clientService: ClientService
 
   constructor(state: GameState) {

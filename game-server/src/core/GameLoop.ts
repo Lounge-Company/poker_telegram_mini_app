@@ -6,6 +6,7 @@ import { DeckManager } from '../managers/DeckManager'
 import { MyRoom } from '../rooms/MyRoom'
 import { RoundManager } from '../managers/RoundManager'
 import { PlayerManager } from '../managers/PlayerManager'
+import { registerGameEvents } from '../events/gameLoopEventRegister'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
@@ -27,6 +28,7 @@ export class GameLoop {
     this.gameManager = new GameManager(room, state)
     this.playerManager = new PlayerManager(state)
     this.deckManager = new DeckManager()
+    registerGameEvents(this)
   }
   startGame() {
     this.state.gameStarted = true

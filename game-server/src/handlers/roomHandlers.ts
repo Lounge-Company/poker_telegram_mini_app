@@ -3,17 +3,16 @@ import { MessageService } from '../services/messageService'
 import { RoomManager } from '../managers/RoomManager'
 import { ClientService } from '../services/clientService'
 import { GameLoop } from '../core/GameLoop'
+import { GameEventEmitter } from '../events/gameEvents'
 
 export class RoomHandlers {
+  private eventEmitter: GameEventEmitter
   MessageService: MessageService
   clientService: ClientService
-  constructor(
-    private room: Room,
-    private roomManager: RoomManager,
-    private gameLoop: GameLoop
-  ) {
+  constructor(private room: Room, private roomManager: RoomManager) {
     this.MessageService = new MessageService()
     this.clientService = new ClientService()
+    this.eventEmitter = GameEventEmitter.getInstance()
   }
 
   public registerHandlers() {
@@ -39,16 +38,11 @@ export class RoomHandlers {
     if (!player) return
     if (!player.ready) {
       player.ready = true
-      console.log(`Player ${client.sessionId} is ready`)
       this.room.state.readyPlayers++
-      console.log('ready players:', this.room.state.readyPlayers)
-      console.log('players in room:', this.room.state.players.size)
-      if (
-        this.room.state.readyPlayers === this.room.state.players.size &&
-        this.room.state.players.size >= 2
-      ) {
+
+      if (this.canStartGame()) {
         this.room.state.readyPlayers = 0
-        this.gameLoop.startGame()
+        this.eventEmitter.emit('gameStart')
         this.clientService.broadcastSystemMessage(this.room, 'Game started!')
       }
     }
@@ -72,14 +66,12 @@ export class RoomHandlers {
       seatNumber
     )
     if (!success) {
-      console.log(`Player ${client.sessionId} failed to join to the game`)
       this.clientService.sendSystemMessage(
         client,
         `seat ${seatNumber} is already taken`
       )
       return
     }
-    console.log(`Player ${client.sessionId} joined to at seat ${seatNumber}`)
     this.clientService.broadcastSystemMessage(
       this.room,
       `Player ${client.sessionId} joined to at seat ${seatNumber}`
@@ -92,11 +84,16 @@ export class RoomHandlers {
     const success = this.roomManager.handlePlayerLeaveGame(client.sessionId)
 
     if (success) {
-      console.log(`Player ${client.sessionId} left seat ${seatNumber + 1}`)
       this.clientService.broadcastSystemMessage(
         this.room,
         `Player ${client.sessionId} left seat ${seatNumber + 1}`
       )
     }
+  }
+  private canStartGame(): boolean {
+    return (
+      this.room.state.readyPlayers === this.room.state.players.size &&
+      this.room.state.players.size >= 2
+    )
   }
 }
