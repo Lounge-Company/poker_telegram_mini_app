@@ -5,8 +5,8 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "build": "eslint . && tsc -b && vite build",
+    "lint": "eslint src/components/PokerRoom/Seat.tsx",
     "preview": "vite preview"
   },
   "dependencies": {

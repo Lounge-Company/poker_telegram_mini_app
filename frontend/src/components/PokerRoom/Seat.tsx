@@ -27,7 +27,7 @@ const Seat = ({
         top: `${y}%`,
         width: "150px",
         height: "100px",
-        border: `1px dashed ${isOccupied ? "#000" : "#ccc"}`,
+        border: `1px dashed ${isOccupied ? "#0F0" : "#ccc"}`,
         display: "flex",
         justifyContent: "center",
         alignItems: "center",

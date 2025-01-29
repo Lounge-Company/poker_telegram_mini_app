@@ -4,87 +4,86 @@ import Seat from "./Seat";
 import RoomService from "../../services/RoomService";
 import { Room } from "colyseus.js";
 
+type ColyseusState = {
+  seats: SeatType[];
+};
+
 type SeatType = {
   index: number;
   playerId: string;
 };
 
-type Position = {
-  x: number;
-  y: number;
-  dx: number;
-  dy: number;
-};
+const positions = [
+  { x: 50, y: 0, dx: -50, dy: 0 },
+  { x: 0, y: 10, dx: 0, dy: 0 },
+  { x: 0, y: 30, dx: 0, dy: 0 },
+  { x: 0, y: 70, dx: 0, dy: -100 },
+  { x: 0, y: 90, dx: 0, dy: -100 },
+  { x: 50, y: 100, dx: -50, dy: -100 },
+  { x: 100, y: 90, dx: -100, dy: -100 },
+  { x: 100, y: 70, dx: -100, dy: -100 },
+  { x: 100, y: 30, dx: -100, dy: 0 },
+  { x: 100, y: 10, dx: -100, dy: 0 }
+];
 
 const PokerRoom = () => {
-  const [seatPositions, setSeatPositions] = useState<Position[]>([]);
-  // const [roomService, setRoomService] = useState<RoomService | null>(null);
-  /* eslint-disable @typescript-eslint/no-explicit-any */
-  const [seats, setSeats] = useState<any>([]);
-  const [room, setRoom] = useState<Room | null>(null);
+  const [seats, setSeats] = useState<SeatType[]>([]);
+  const roomRef = useRef<Room | null>(null);
   const roomService = useRef(new RoomService());
+  const [roomReady, setRoomReady] = useState(false);
 
   useEffect(() => {
     const initializeRoom = async () => {
+      if (roomRef.current) return; // если комната уже есть то выходим
       try {
         await roomService.current.init("my_room");
-        console.log(roomService.current.room?.name);
-
-        setRoom(roomService.current.room);
+        roomRef.current = roomService.current.room;
+        setRoomReady(true);
       } catch (error) {
         console.error("Error initializing room:", error);
       }
     };
+
     initializeRoom();
-    console.log();
   }, []);
 
   // listeneres
   useEffect(() => {
-    if (room) {
-      room.onStateChange((state) => {
-        console.log("State updated:", state);
-        // Обновляем состояние сидений, например, получая их из room.state.seats
-        console.log("seat values", state.seats.toArray());
-        setSeats(state.seats);
-        state.seats.forEach((seat: SeatType, index: number) => {
-          if (seat.playerId) {
-            console.log("seat: ", index);
-            const player = state.players.get(seat.playerId);
-            console.log(player);
-          }
-        });
-      });
-      room.onMessage("message", (message) => {
-        console.log("Received message:", message);
-      });
-    }
+    if (!roomReady || !roomRef.current) return;
+    const room = roomRef.current;
+    console.log("room:", room);
+
+    const handleStateChange = (state: ColyseusState) => {
+      for (const seat of state.seats) {
+        console.log(`Seat ${seat.index}: ${seat.playerId}`);
+      }
+      setSeats(
+        state.seats.map((seat) => ({
+          index: seat.index,
+          playerId: seat.playerId
+        }))
+      );
+    };
+
+    const handleMessage = (message: string) => {
+      console.log("Received message:", message);
+    };
+
+    room.onStateChange(handleStateChange);
+    room.onMessage("message", handleMessage);
     return () => {
       room?.removeAllListeners();
     };
-  }, [room]);
+  }, [roomReady]);
 
   useEffect(() => {
-    const positions = [
-      { x: 50, y: 0, dx: -50, dy: 0 },
-      { x: 0, y: 10, dx: 0, dy: 0 },
-      { x: 0, y: 30, dx: 0, dy: 0 },
-      { x: 0, y: 70, dx: 0, dy: -100 },
-      { x: 0, y: 90, dx: 0, dy: -100 },
-      { x: 50, y: 100, dx: -50, dy: -100 },
-      { x: 100, y: 90, dx: -100, dy: -100 },
-      { x: 100, y: 70, dx: -100, dy: -100 },
-      { x: 100, y: 30, dx: -100, dy: 0 },
-      { x: 100, y: 10, dx: -100, dy: 0 }
-    ];
-
-    setSeatPositions(positions);
-  }, []);
+    console.log("seats hui:", seats);
+    console.log("seat errior", seats[8]);
+  }, [seats]);
 
   const handleSeatClick = (seatNumber: number) => {
-    room?.send("leaveGame");
-    room?.send("joinGame", seatNumber);
-
+    roomRef.current?.send("leaveGame");
+    roomRef.current?.send("joinGame", seatNumber);
     console.log(`Seat ${seatNumber} clicked`);
   };
 
@@ -99,7 +98,8 @@ const PokerRoom = () => {
         position: "relative"
       }}
     >
-      {seatPositions.map((position, index) => (
+      <p></p>
+      {positions.map((position, index) => (
         <Seat
           key={index}
           x={position.x}
@@ -108,7 +108,9 @@ const PokerRoom = () => {
           dy={position.dy}
           num={index}
           onClick={handleSeatClick}
-          isOccupied={seats[index]?.isOccupied}
+          isOccupied={
+            seats[index] !== undefined && seats[index].playerId !== ""
+          }
         />
       ))}
       <img
