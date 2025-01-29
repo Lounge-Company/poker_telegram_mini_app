@@ -39,8 +39,12 @@ export class PlayerManager {
   async resetPlayers() {
     this.state.players.forEach((player) => {
       player.acted = false
+      player.hasFolded = false
+      player.isAllIn = false
+      player.currentBet = 0
     })
   }
+
   leaveGame(playerId: string) {
     const player = this.state.players.get(playerId)
     if (player) {

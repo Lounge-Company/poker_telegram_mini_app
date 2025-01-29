@@ -39,14 +39,17 @@ export class GameLoop {
     this.state.gameStarted = false
   }
   async gameLoop() {
-    if (this.state.gameStarted && this.state.players.size >= 2) {
+    while (
+      this.state.gameStarted &&
+      this.state.players.size >= this.state.MIN_PLAYERS
+    ) {
       console.log('Game loop running...')
 
       // create deck
-      // this.deck = this.deckManager.createDeck()
+      this.deck = this.deckManager.createDeck()
 
       // // deal cards
-      // this.playerCards = this.gameManager.dealCards(this.deck)
+      this.playerCards = this.gameManager.dealCards(this.deck)
 
       // start betting round
 
@@ -54,18 +57,14 @@ export class GameLoop {
 
       // start new game
       this.playerManager.resetPlayers()
-      // this.roundManager.resetRound()
-      setTimeout(() => this.gameLoop(), this.gameloopDelay)
-    } else {
-      console.log('Game loop stopped.')
+      this.roundManager.resetRound()
+      await new Promise((resolve) => setTimeout(resolve, this.gameloopDelay))
     }
+    console.log('Game loop stopped.')
   }
   private async bettingRound(): Promise<boolean> {
     while (!this.turnManager.allPlayersActed()) {
-      console.log('============================')
       let currentPlayer = this.state.players.get(this.state.currentTurn)
-      console.log('Current turn: ', this.state.currentTurn)
-      console.log(`Current player: ${currentPlayer?.name} - ${currentPlayer?.acted}`)
       if (!currentPlayer) {
         return true
       }
@@ -77,7 +76,7 @@ export class GameLoop {
         return true
       }
     }
-    this.state.currentTurn = this.turnManager.getStartingPlayer()
+    console.log('betting round finished')
     return true
   }
 }

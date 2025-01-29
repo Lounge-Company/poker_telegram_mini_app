@@ -9,6 +9,8 @@ export class BrowserEvents {
     this.setupGameForms()
     this.setupButtons()
     this.setupCheck()
+    this.setupBet()
+    this.setupCall()
   }
 
   setupMessageForm() {
@@ -26,9 +28,9 @@ export class BrowserEvents {
     numberForm.addEventListener('submit', (event) => {
       event.preventDefault()
       const numberInput = document.getElementById('numberInput')
-      const number = parseInt(numberInput.value, 10)
+      let number = parseInt(numberInput.value, 10)
       if (!isNaN(number)) {
-        this.room.send('joinGame', number)
+        this.room.send('joinGame', number - 1)
         numberInput.value = ''
       }
     })
@@ -43,6 +45,7 @@ export class BrowserEvents {
     })
 
     readyButton.addEventListener('click', () => {
+      console.log('ready button clicked')
       this.room.send('ready')
     })
   }
@@ -51,6 +54,28 @@ export class BrowserEvents {
     checkButton.addEventListener('click', () => {
       console.log('setupCheck called')
       this.room.send('check')
+    })
+  }
+  setupBet() {
+    const betButton = document.getElementById('bet')
+    betButton.addEventListener('click', () => {
+      const betAmmount = document.getElementById('bet-input')
+      console.log('bet value', betAmmount.value, 'type', typeof betAmmount.value)
+      this.room.send('bet', parseInt(betAmmount.value, 10))
+    })
+  }
+  setupCall() {
+    const callButton = document.getElementById('call')
+    callButton.addEventListener('click', () => {
+      console.log('setupCall called')
+      this.room.send('call')
+    })
+  }
+  setupFold() {
+    const foldButton = document.getElementById('fold')
+    foldButton.addEventListener('click', () => {
+      console.log('setupFold called')
+      this.room.send('fold')
     })
   }
 }

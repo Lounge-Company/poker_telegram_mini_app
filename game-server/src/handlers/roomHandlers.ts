@@ -6,7 +6,7 @@ import { GameLoop } from '../core/GameLoop'
 import { GameEventEmitter } from '../events/gameEvents'
 
 export class RoomHandlers {
-  private eventEmitter: GameEventEmitter
+  eventEmitter: GameEventEmitter
   MessageService: MessageService
   clientService: ClientService
   constructor(private room: Room, private roomManager: RoomManager) {
@@ -93,7 +93,7 @@ export class RoomHandlers {
   private canStartGame(): boolean {
     return (
       this.room.state.readyPlayers === this.room.state.players.size &&
-      this.room.state.players.size >= 2
+      this.room.state.players.size >= this.room.state.MIN_PLAYERS
     )
   }
 }

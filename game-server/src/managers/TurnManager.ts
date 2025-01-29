@@ -2,6 +2,9 @@ import { GameState } from '../rooms/schema/GameState'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
 export class TurnManager {
+  getCurrentTurn(): string {
+    return this.state.currentTurn
+  }
   private state: GameState
   private readonly TURN_TIME = 5000
   private clientService: ClientService
@@ -20,7 +23,9 @@ export class TurnManager {
     return false
   }
   getStartingPlayer(): string {
+    console.log('seats :', this.state.seats.values())
     const firstOccupiedSeat = this.state.seats.find((seat) => seat.playerId !== '')
+    console.log('firstOccupiedSeat :', firstOccupiedSeat)
     return firstOccupiedSeat.playerId
   }
   public allPlayersActed(): boolean {
@@ -32,25 +37,30 @@ export class TurnManager {
     return true
   }
   private allBetsEqual(): boolean {
+    let targetBet = this.state.currentBet
+
     for (const player of this.state.players.values()) {
-      if (!player.hasFolded && !player.isAllIn) {
-        if (player.currentBet !== this.state.currentBet) {
-          return false
-        }
+      // Skip folded players
+      if (player.hasFolded) continue
+
+      // All-in players are considered to have matched their maximum possible bet
+      if (player.isAllIn) continue
+
+      // Check if active player's bet matches current bet
+      if (player.currentBet !== targetBet) {
+        return false
       }
     }
     return true
   }
-  public getCurrentPlayer(): PlayerState | undefined {
-    return this.state.players.get(this.state.currentTurn)
-  }
+
   private isPlayerEligibleForTurn(playerId: string): boolean {
     const player = this.state.players.get(playerId)
     return playerId && !player?.hasFolded && !player?.isAllIn && !player?.acted
   }
 
   getNextTurn(): string | undefined {
-    // Если активных игроков нет, сразу выходим
+    // if no active players, return undefined
     // if (!this.hasActivePlayers()) {
     //   return undefined
     // }
@@ -83,7 +93,7 @@ export class TurnManager {
           player.acted = true
           resolve()
         }
-      }, this.TURN_TIME)
+      }, this.state.TURN_TIME)
 
       const checkInterval = setInterval(() => {
         if (player.acted) {

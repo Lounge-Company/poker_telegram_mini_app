@@ -3,18 +3,13 @@ import { Seat } from '../rooms/schema/Seat'
 
 export class RoomManager {
   constructor(private state: GameState) {
-    for (let i = 0; i < 6; i++) {
-      const seat = new Seat()
-      seat.index = i
-      seat.playerId = ''
-      this.state.seats.push(seat)
-    }
+    this.initializeSeats()
   }
   handlePlayerJoinToGame(playerId: string, seatNumber: number): boolean {
     console.log('playerId :', playerId, 'seatNumber :', seatNumber)
     const spectator = this.state.spectators.get(playerId)
     if (!spectator) return false
-    const seat = this.state.seats[seatNumber - 1]
+    const seat = this.state.seats[seatNumber]
     if (seat && seat.playerId !== '') {
       return false
     }
@@ -50,5 +45,13 @@ export class RoomManager {
     const seat = this.state.seats.find((s) => s.playerId === playerId)
     if (!seat) return undefined
     return seat
+  }
+  private initializeSeats(): void {
+    for (let i = 0; i < this.state.MAX_SEATS; i++) {
+      const seat = new Seat()
+      seat.index = i
+      seat.playerId = ''
+      this.state.seats.push(seat)
+    }
   }
 }
