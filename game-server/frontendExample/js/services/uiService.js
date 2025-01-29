@@ -17,15 +17,31 @@ export class UIService {
         if (!player) {
           return console.log('Player not found')
         }
+        // Если ставки нет, создаём её
         seatElement.innerHTML = `
-                <div>Место ${index + 1}</div>
-                <div>${player.name}</div>
-                <div>Фишки: ${player.chips}</div>
-            `
+            <div class="player-name">${player.name}</div>
+            <div class="player-chips">${player.chips}</div>
+            <p class="table-player-bet-value seat-${index + 1}-bet">
+              <span class="chips-value">
+                <span class="normal-value">0</span>
+              </span>
+            </p>
+          `
       } else {
+        // Если игрока нет, показываем только номер места
         seatElement.innerHTML = `место ${index + 1}`
       }
     })
+  }
+  updatePlayerBet(playerId, bet) {
+    const seatIndex = this.room.state.seats.findIndex(
+      (seat) => seat.playerId === playerId
+    )
+    console.log('playerId :', playerId)
+    console.log('seatIndex :', seatIndex)
+    const betElement = document.querySelector(`.seat-${seatIndex + 1}-bet`)
+    const normalValueElement = betElement.querySelector('.normal-value')
+    normalValueElement.textContent = bet
   }
   displayMessage(message) {
     if (message && typeof message === 'object') {

@@ -2,6 +2,7 @@ export class RoomEvents {
   constructor(room, uiService) {
     this.room = room
     this.ui = uiService
+    this.ui.updateSeats()
   }
 
   setup() {
@@ -9,6 +10,7 @@ export class RoomEvents {
     this.setupMessages()
     this.setupGameEvents()
     this.setupGameTurns()
+    this.setupBets()
     // this.setupSeatsChanges()
   }
 
@@ -49,6 +51,11 @@ export class RoomEvents {
       )
 
       this.ui.highlightSeat(seatIndex)
+    })
+  }
+  setupBets() {
+    this.room.onMessage('playerBet', ({ playerId, bet }) => {
+      this.ui.updatePlayerBet(playerId, bet)
     })
   }
 }

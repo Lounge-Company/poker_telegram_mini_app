@@ -6,6 +6,7 @@ import { DeckManager } from '../managers/DeckManager'
 import { MyRoom } from '../rooms/MyRoom'
 import { RoundManager } from '../managers/RoundManager'
 import { PlayerManager } from '../managers/PlayerManager'
+import { registerGameEvents } from '../events/gameLoopEventRegister'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
@@ -27,6 +28,7 @@ export class GameLoop {
     this.gameManager = new GameManager(room, state)
     this.playerManager = new PlayerManager(state)
     this.deckManager = new DeckManager()
+    registerGameEvents(this)
   }
   startGame() {
     this.state.gameStarted = true
@@ -37,32 +39,32 @@ export class GameLoop {
     this.state.gameStarted = false
   }
   async gameLoop() {
-    if (this.state.gameStarted && this.state.players.size >= 2) {
+    while (
+      this.state.gameStarted &&
+      this.state.players.size >= this.state.MIN_PLAYERS
+    ) {
       console.log('Game loop running...')
 
       // create deck
-      // this.deck = this.deckManager.createDeck()
+      this.deck = this.deckManager.createDeck()
 
       // // deal cards
-      // this.playerCards = this.gameManager.dealCards(this.deck)
+      this.playerCards = this.gameManager.dealCards(this.deck)
 
       // start betting round
 
       await this.bettingRound()
+
+      // start new game
       this.playerManager.resetPlayers()
-      // this.roundManager.resetRound()
-      setTimeout(() => this.gameLoop(), this.gameloopDelay)
-    } else {
-      console.log('Game loop stopped.')
+      this.roundManager.resetRound()
+      await new Promise((resolve) => setTimeout(resolve, this.gameloopDelay))
     }
+    console.log('Game loop stopped.')
   }
   private async bettingRound(): Promise<boolean> {
-    this.state.currentTurn = this.turnManager.getStartingPlayer()
     while (!this.turnManager.allPlayersActed()) {
-      console.log('============================')
       let currentPlayer = this.state.players.get(this.state.currentTurn)
-      console.log('Current turn: ', this.state.currentTurn)
-      console.log(`Current player: ${currentPlayer?.name} - ${currentPlayer?.acted}`)
       if (!currentPlayer) {
         return true
       }
@@ -74,6 +76,7 @@ export class GameLoop {
         return true
       }
     }
+    console.log('betting round finished')
     return true
   }
 }

@@ -29,10 +29,4 @@ export class BetManager {
     }
     this.state.pot += totalBets
   }
-
-  public placeBet(player: PlayerState, amount: number): void {
-    player.chips -= amount
-    player.currentBet += amount
-    this.state.currentBet = Math.max(this.state.currentBet, player.currentBet)
-  }
 }

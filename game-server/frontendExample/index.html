@@ -10,15 +10,80 @@
   <body>
     <div id="poker-table">
       <div id="seats-container">
-        <div class="seat" id="seat-0">Empty Seat 0</div>
-        <div class="seat" id="seat-1">Empty Seat 1</div>
-        <div class="seat" id="seat-2">Empty Seat 2</div>
-        <div class="seat" id="seat-3">Empty Seat 3</div>
-        <div class="seat" id="seat-4">Empty Seat 4</div>
-        <div class="seat" id="seat-5">Empty Seat 5</div>
+        <div class="seat" id="seat-0">
+          Место 1
+          <p class="table-player-bet-value seat-1-bet">
+            <span class="chips-value">
+              <span class="normal-value">0</span>
+            </span>
+          </p>
+        </div>
+        <div class="seat" id="seat-1">
+          Место 2
+          <p class="table-player-bet-value seat-2-bet">
+            <span class="chips-value">
+              <span class="normal-value">0</span>
+            </span>
+          </p>
+        </div>
+        <div class="seat" id="seat-2">
+          Место 3
+          <p class="table-player-bet-value seat-3-bet">
+            <span class="chips-value">
+              <span class="normal-value">0</span>
+            </span>
+          </p>
+        </div>
+        <div class="seat" id="seat-3">
+          Место 4
+          <p class="table-player-bet-value seat-4-bet">
+            <span class="chips-value">
+              <span class="normal-value">0</span>
+            </span>
+          </p>
+        </div>
+        <div class="seat" id="seat-4">
+          Место 5
+          <p class="table-player-bet-value seat-5-bet">
+            <span class="chips-value">
+              <span class="normal-value">0</span>
+            </span>
+          </p>
+        </div>
+        <div class="seat" id="seat-5">
+          Место 6
+          <p class="table-player-bet-value seat-6-bet">
+            <span class="chips-value">
+              <span class="normal-value">0</span>
+            </span>
+          </p>
+        </div>
+      </div>
+
+      <div id="pot-container">
+        <div id="pot-amount-container">
+          <span id="pot-amount">0</span>
+        </div>
+      </div>
+
+      <div id="table-cards">
+        <div class="card" id="card-1"></div>
+        <div class="card" id="card-2"></div>
+        <div class="card" id="card-3"></div>
+        <div class="card" id="card-4"></div>
+        <div class="card" id="card-5"></div>
       </div>
     </div>
-    <button id="check">check</button>
+    <div class="btns-container">
+      <input type="number" id="bet-input" placeholder="Amount" min="1" />
+      <div class="buttons">
+        <button id="bet">bet</button>
+        <button id="call">call</button>
+        <button id="check">check</button>
+        <button id="fold">fold</button>
+      </div>
+    </div>
+
     <h1>Colyseus Message Handling</h1>
 
     <form id="messageForm">

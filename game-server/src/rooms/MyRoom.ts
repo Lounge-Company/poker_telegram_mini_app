@@ -20,7 +20,7 @@ export class MyRoom extends Room<GameState> {
     this.setSeatReservationTime(60)
     this.RoomManager = new RoomManager(this.state)
     this.GameLoop = new GameLoop(this, this.state)
-    this.RoomHandlers = new RoomHandlers(this, this.RoomManager, this.GameLoop)
+    this.RoomHandlers = new RoomHandlers(this, this.RoomManager)
     this.GameHandlers = new GameHandlers(this, this.state)
     this.ClientService = new ClientService()
 
