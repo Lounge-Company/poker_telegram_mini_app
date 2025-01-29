@@ -1,50 +1,239 @@
+body {
+  background: #1a1a1a;
+  color: #ffffff;
+  font-family: 'Arial', sans-serif;
+}
+
 #poker-table {
-  width: 800px;
-  height: 400px;
-  background: #2a7e19;
-  border-radius: 200px;
+  width: 1000px;
+  height: 500px;
+  background: linear-gradient(145deg, #1e5f0f, #2a7e19);
+  border-radius: 250px;
   position: relative;
   margin: 50px auto;
+  border: 15px solid #4a3500;
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
 }
 
 .seat {
-  width: 100px;
-  height: 100px;
-  background: #333;
-  border-radius: 50%;
+  width: 140px;
+  height: 80px;
+  background: rgba(42, 42, 42, 0.8);
+  border-radius: 10px;
   position: absolute;
-  color: white;
-  text-align: center;
-  padding: 10px;
+  padding: 15px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  transform: translateY(40px); /* Смещение для базового положения */
+}
+.seat .player-name {
+  color: #c3c3c3;
+  text-decoration: underline;
 }
 
 #seat-0 {
-  left: 350px;
-  top: 20px;
+  left: 420px;
+  top: -100px; /* Выходит за верхнюю границу */
 }
 #seat-1 {
-  left: 620px;
-  top: 100px;
+  left: 900px; /* Смещается чуть дальше от центра */
+  top: 70px;
 }
 #seat-2 {
-  left: 620px;
-  top: 250px;
+  left: 900px; /* Смещается чуть дальше от центра */
+  top: 310px;
 }
 #seat-3 {
-  left: 350px;
-  top: 270px;
+  left: 430px;
+  top: 405px; /* Выходит за нижнюю границу */
 }
 #seat-4 {
-  left: 60px;
-  top: 250px;
+  left: -40px; /* Выходит за левую границу */
+  top: 310px;
 }
 #seat-5 {
-  left: 60px;
-  top: 100px;
+  left: -40px; /* Выходит за левую границу */
+  top: 70px;
+}
+
+button {
+  background: #4a90e2;
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 5px;
+  cursor: pointer;
+  margin: 5px;
+  transition: all 0.3s ease;
+}
+
+button:hover {
+  background: #357abd;
+  transform: translateY(-2px);
+}
+
+input {
+  padding: 10px;
+  border-radius: 5px;
+  border: 1px solid #4a90e2;
+  margin: 5px;
 }
 .active-turn {
-  background-color: #ffd700;
-  border: 2px solid #ff8c00;
-  box-shadow: 0 0 10px rgba(255, 215, 0, 0.5);
+  transform: scale(1.05) translateY(40px);
+  background: rgb(255, 255, 255);
+  border: 3px solid #ffffff;
+  box-shadow: 0 8px 20px rgba(255, 215, 0, 0.6);
+  color: #000000;
+  font-weight: bold;
   transition: all 0.3s ease;
+}
+
+.active-turn .player-name,
+.active-turn .player-chips {
+  color: #000000;
+}
+
+.player-chips {
+  color: #ffffff;
+  font-weight: bold;
+}
+
+#pot-container {
+  position: absolute; /* Position within the table */
+  top: 20%; /* Place it closer to the top border */
+  left: 30%; /* Center it horizontally */
+  transform: translate(-50%, 0); /* Ensure perfect centering horizontally */
+  z-index: 10; /* Keep it above other elements */
+}
+
+#pot-label {
+  position: absolute; /* Position it relative to the container */
+  top: -15px; /* Adjust to place it above the border */
+  left: 50%; /* Center horizontally */
+  transform: translateX(-50%); /* Ensure perfect centering */
+  color: white; /* White text for contrast */
+  padding: 5px 10px; /* Add padding around the text */
+  font-size: 24px; /* Slightly smaller text */
+  border-radius: 20px; /* Round edges for the label */
+}
+
+#pot-amount-container {
+  background: rgba(42, 42, 42, 0.8); /* Semi-transparent gray */
+  border-radius: 50px; /* Oval shape */
+  padding: 10px 65px; /* Spacing inside the block */
+  text-align: center; /* Center the number */
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2); /* Soft shadow for depth */
+  font-family: 'Arial', sans-serif; /* Consistent font */
+}
+
+#pot-amount {
+  font-weight: bold; /* Bold text for emphasis */
+  font-size: 28px; /* Larger font size for the amount */
+  color: white; /* Bright cyan for a vibrant touch */
+}
+
+#table-cards {
+  position: absolute;
+  top: 35%; /* Расположение контейнера ниже центра */
+  left: 50%; /* Центровка по горизонтали */
+  transform: translateX(-50%); /* Точное выравнивание по центру */
+  display: flex; /* Используем flexbox для расположения карт */
+  gap: 0.5rem; /* Отступ между картами */
+  justify-content: flex-start; /* Карты выравниваются слева */
+  z-index: 2;
+}
+
+.card {
+  width: 5rem; /* Ширина карты */
+  height: 7.5rem; /* Высота карты */
+  background-color: rgba(255, 255, 255, 0.8); /* Цвет карты */
+  border: 2px solid #dcdcdc; /* Тонкая рамка */
+  border-radius: 0.5rem; /* Скруглённые углы */
+  margin: 0;
+  padding: 0;
+  box-shadow: 0 0.4rem 0.6rem rgba(0, 0, 0, 0.1);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.card:empty::after {
+  content: 'Card';
+  opacity: 0.6;
+  font-size: 1rem;
+  color: #7f8c8d;
+}
+
+.table-player-bet-value {
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+}
+.table-player-bet-value {
+  position: absolute;
+  /* other styles */
+}
+
+.seat-1-bet {
+  top: calc(100%);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.seat-2-bet {
+  top: calc(100% + -50px);
+  left: -10%;
+  transform: translateX(-50%);
+}
+
+.seat-3-bet {
+  top: calc(100% + -50px);
+  left: -10%;
+  transform: translateX(-50%);
+}
+
+.seat-4-bet {
+  top: calc(100% + -170px);
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.seat-5-bet {
+  top: calc(100% + -50px);
+  left: 110%;
+  transform: translateX(-50%);
+}
+
+.seat-6-bet {
+  top: calc(100% + -50px);
+  left: 110%;
+  transform: translateX(-50%);
+}
+.btns-container {
+  display: flex; /* Для размещения инпута и кнопок рядом */
+  align-items: flex-start; /* Выравнивание кнопок по верхнему краю */
+  gap: 10px; /* Отступ между инпутом и кнопками */
+  position: absolute; /* Позволяет точно позиционировать элементы */
+  right: 20px; /* Расстояние от правого края страницы */
+  top: 50%; /* Центрирование по вертикали */
+  transform: translateY(-50%); /* Коррекция для вертикального центрирования */
+}
+
+/* Поле ввода */
+#bet-input {
+  width: 80px; /* Ширина инпута */
+  padding: 5px; /* Внутренние отступы */
+  font-size: 16px; /* Размер текста */
+}
+
+/* Вертикальное расположение кнопок */
+.buttons {
+  display: flex; /* Контейнер для кнопок */
+  flex-direction: column; /* Расположение кнопок в столбик */
+  gap: 10px; /* Расстояние между кнопками */
 }

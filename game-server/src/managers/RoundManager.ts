@@ -12,10 +12,12 @@ export class RoundManager {
     return this.state.gamePhase
   }
   shouldContinueBettingRound(): boolean {
-    return this.turnManager.allPlayersActed() // сходили ли все игроки?
+    return this.turnManager.allPlayersActed() // all players have acted
   }
   resetRound() {
     this.state.gamePhase = RoundType.PREFLOP
+    this.state.currentTurn = this.turnManager.getStartingPlayer()
+    console.log('set current turn :', this.state.currentTurn)
   }
   nextRound(round: RoundType | undefined) {
     switch (this.state.gamePhase) {
