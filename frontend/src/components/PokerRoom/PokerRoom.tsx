@@ -67,16 +67,8 @@ const PokerRoom = () => {
   useEffect(() => {
     if (!roomReady || !roomRef.current) return;
     const room = roomRef.current;
-    console.log("room:", room);
 
     const handleStateChange = (state: ColyseusState) => {
-      for (const seat of state.seats) {
-        console.log(`Seat ${seat.index}: ${seat.playerId}`);
-      }
-      for (const players of state.players) {
-        console.log(`Players ${Object.values(players)}`);
-      }
-      console.log("State players:", Array.from(state.players.entries()));
       setGameState({
         ...gameState,
         seats: state.seats.map((seat) => ({
@@ -98,14 +90,9 @@ const PokerRoom = () => {
     };
   }, [roomReady]);
 
-  useEffect(() => {
-    console.log("seats hui:", gameState);
-  }, [gameState]);
-
   const handleSeatClick = (seatNumber: number) => {
     roomRef.current?.send("leaveGame");
     roomRef.current?.send("joinGame", seatNumber);
-    console.log(`Seat ${seatNumber} clicked`);
   };
 
   return (
