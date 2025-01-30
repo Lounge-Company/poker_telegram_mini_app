@@ -14,8 +14,11 @@ export class RoomManager {
       return false
     }
     if (seat && !seat.playerId) {
+      spectator.seatIndex = seatNumber
+
       this.state.players.set(playerId, spectator)
       this.state.spectators.delete(playerId)
+
       seat.playerId = playerId
       // console.log('seats :', JSON.stringify(this.state.seats))
     }
@@ -28,6 +31,7 @@ export class RoomManager {
   handlePlayerLeaveGame(playerId: string): boolean {
     const player = this.state.players.get(playerId)
     if (!player) return false
+    player.seatIndex = null
     this.state.spectators.set(playerId, player)
     this.state.players.delete(playerId)
     const seat = this.state.seats.find((s) => s.playerId === playerId)

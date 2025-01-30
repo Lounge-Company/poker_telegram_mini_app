@@ -6,7 +6,6 @@ import { RoundType } from '../../types/GameTypes'
 
 export class GameState extends Schema {
   @type({ map: PlayerState }) players = new MapSchema<PlayerState>()
-  @type({ map: PlayerState }) waitingQueue = new MapSchema<PlayerState>()
   @type({ map: PlayerState }) spectators = new MapSchema<PlayerState>()
   @type([Seat]) seats = new ArraySchema<Seat>()
   @type([Card]) communityCards = new Array<Card>()
