@@ -39,23 +39,6 @@ const positions = [
   { x: 100, y: 10, dx: -100, dy: 0 }
 ];
 
-const mergePlayerState = (
-  oldPlayer: PlayerState,
-  newPlayer: Partial<PlayerState>
-) => {
-  return {
-    id: newPlayer.id ?? oldPlayer.id,
-    name: newPlayer.name ?? oldPlayer.name,
-    chips: newPlayer.chips ?? oldPlayer.chips,
-    currentBet: newPlayer.currentBet ?? oldPlayer.currentBet,
-    hasFolded: newPlayer.hasFolded ?? oldPlayer.hasFolded,
-    isAllIn: newPlayer.isAllIn ?? oldPlayer.isAllIn,
-    ready: newPlayer.ready ?? oldPlayer.ready,
-    acted: newPlayer.acted ?? oldPlayer.acted,
-    seatIndex: newPlayer.seatIndex ?? oldPlayer.seatIndex
-  };
-};
-
 const PokerRoom = () => {
   const [gameState, setGameState] = useState<ColyseusState>({
     seats: [],
@@ -94,28 +77,13 @@ const PokerRoom = () => {
         console.log(`Players ${Object.values(players)}`);
       }
       console.log("State players:", Array.from(state.players.entries()));
-      setGameState((prevState) => {
-        const updatedPlayers = new Map(prevState.players);
-
-        for (const [playerId, player] of state.players.entries()) {
-          const existingPlayer =
-            updatedPlayers.get(playerId) || ({} as PlayerState);
-
-          // Фильтруем undefined, обновляем только существующие поля
-          updatedPlayers.set(
-            playerId,
-            mergePlayerState(existingPlayer, player)
-          );
-        }
-
-        return {
-          ...prevState,
-          seats: state.seats.map((seat) => ({
-            index: seat.index,
-            playerId: seat.playerId
-          })),
-          players: updatedPlayers
-        };
+      setGameState({
+        ...gameState,
+        seats: state.seats.map((seat) => ({
+          index: seat.index,
+          playerId: seat.playerId
+        })),
+        players: new Map(state.players)
       });
     };
 
