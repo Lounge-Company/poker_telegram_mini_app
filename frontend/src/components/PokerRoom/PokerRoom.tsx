@@ -6,11 +6,23 @@ import { Room } from "colyseus.js";
 
 type ColyseusState = {
   seats: SeatType[];
+  players: Map<string, PlayerState>;
 };
 
 type SeatType = {
   index: number;
   playerId: string;
+};
+
+type PlayerState = {
+  id: string;
+  name: string;
+  chips: number;
+  currentBet: number;
+  hasFolded: boolean;
+  isAllIn: boolean;
+  ready: boolean;
+  acted: boolean;
 };
 
 const positions = [
@@ -27,7 +39,10 @@ const positions = [
 ];
 
 const PokerRoom = () => {
-  const [seats, setSeats] = useState<SeatType[]>([]);
+  const [gameState, setGameState] = useState<ColyseusState>({
+    seats: [],
+    players: new Map()
+  });
   const roomRef = useRef<Room | null>(null);
   const roomService = useRef(new RoomService());
   const [roomReady, setRoomReady] = useState(false);
@@ -57,12 +72,18 @@ const PokerRoom = () => {
       for (const seat of state.seats) {
         console.log(`Seat ${seat.index}: ${seat.playerId}`);
       }
-      setSeats(
-        state.seats.map((seat) => ({
+      for (const players of state.players) {
+        console.log(`Players ${Object.values(players)}`);
+      }
+      console.log("State players:", Array.from(state.players.entries()));
+      setGameState((prevState) => ({
+        ...prevState,
+        seats: state.seats.map((seat) => ({
           index: seat.index,
           playerId: seat.playerId
-        }))
-      );
+        })),
+        players: new Map(state.players) // Сохраняем Map
+      }));
     };
 
     const handleMessage = (message: string) => {
@@ -77,16 +98,18 @@ const PokerRoom = () => {
   }, [roomReady]);
 
   useEffect(() => {
-    console.log("seats hui:", seats);
-    console.log("seat errior", seats[8]);
-  }, [seats]);
+    console.log("seats hui:", gameState);
+  }, [gameState]);
 
   const handleSeatClick = (seatNumber: number) => {
     roomRef.current?.send("leaveGame");
     roomRef.current?.send("joinGame", seatNumber);
     console.log(`Seat ${seatNumber} clicked`);
   };
-
+  const handleTestClick = () => {
+    console.log("test");
+    console.log(Array.from(roomRef?.current?.state.players.entries()));
+  };
   return (
     <div
       style={{
@@ -109,7 +132,11 @@ const PokerRoom = () => {
           num={index}
           onClick={handleSeatClick}
           isOccupied={
-            seats[index] !== undefined && seats[index].playerId !== ""
+            gameState.seats[index] !== undefined &&
+            gameState.seats[index].playerId !== ""
+          }
+          player={
+            gameState.players.get(gameState.seats[index]?.playerId)?.name || ""
           }
         />
       ))}
@@ -117,6 +144,7 @@ const PokerRoom = () => {
         src={image}
         style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "cover" }}
       />
+      <button onClick={() => handleTestClick()}>clik me</button>
     </div>
   );
 };

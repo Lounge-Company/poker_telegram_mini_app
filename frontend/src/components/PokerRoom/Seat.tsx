@@ -1,5 +1,3 @@
-import React from "react";
-
 interface SeatProps {
   x: number;
   y: number;
@@ -8,6 +6,7 @@ interface SeatProps {
   num: number;
   onClick: (seatNumber: number) => void;
   isOccupied?: boolean;
+  player?: string;
 }
 
 const Seat = ({
@@ -17,7 +16,8 @@ const Seat = ({
   dx = 0,
   dy = 0,
   onClick,
-  isOccupied
+  isOccupied,
+  player
 }: SeatProps) => {
   return (
     <div
@@ -39,6 +39,8 @@ const Seat = ({
       }}
     >
       Seat {num}
+      <br></br>
+      {player}
     </div>
   );
 };
