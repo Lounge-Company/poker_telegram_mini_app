@@ -107,10 +107,7 @@ const PokerRoom = () => {
     roomRef.current?.send("joinGame", seatNumber);
     console.log(`Seat ${seatNumber} clicked`);
   };
-  const handleTestClick = () => {
-    console.log("test");
-    console.log(Array.from(roomRef?.current?.state.players.entries()));
-  };
+
   return (
     <div
       style={{
@@ -145,7 +142,6 @@ const PokerRoom = () => {
         src={image}
         style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "cover" }}
       />
-      <button onClick={() => handleTestClick()}>clik me</button>
     </div>
   );
 };
