@@ -21,17 +21,16 @@ const Seat = ({
 }: SeatProps) => {
   return (
     <div
+      className={`cursor-pointer absolute flex justify-center items-center rounded-lg text-center p-2 border ${
+        isOccupied
+          ? "border-dashed border-green-500"
+          : "border-dashed border-gray-300"
+      }`}
       style={{
-        position: "absolute",
         left: `${x}%`,
         top: `${y}%`,
         width: "150px",
         height: "100px",
-        border: `1px dashed ${isOccupied ? "#0F0" : "#ccc"}`,
-        display: "flex",
-        justifyContent: "center",
-        alignItems: "center",
-        borderRadius: "16px",
         transform: `translate(${dx}%, ${dy}%)`
       }}
       onClick={() => {

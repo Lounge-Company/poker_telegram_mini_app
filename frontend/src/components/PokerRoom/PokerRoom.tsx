@@ -1,30 +1,8 @@
-import { useEffect, useRef, useState } from "react";
-import image from "../../assets/images/table-vertical.png";
+import image from "src/assets/images/table-vertical.png";
 import Seat from "./Seat";
-import RoomService from "../../services/RoomService";
-import { Room } from "colyseus.js";
 
-type ColyseusState = {
-  seats: SeatType[];
-  players: Map<string, PlayerState>;
-};
-
-type SeatType = {
-  index: number;
-  playerId: string;
-};
-
-type PlayerState = {
-  id: string;
-  name: string;
-  chips: number;
-  currentBet: number;
-  hasFolded: boolean;
-  isAllIn: boolean;
-  ready: boolean;
-  acted: boolean;
-  seatIndex: number;
-};
+import PokerActions from "./PokerActions";
+import usePokerRoom from "src/hooks/usePokerRoom";
 
 const positions = [
   { x: 50, y: 0, dx: -50, dy: 0 },
@@ -40,55 +18,7 @@ const positions = [
 ];
 
 const PokerRoom = () => {
-  const [gameState, setGameState] = useState<ColyseusState>({
-    seats: [],
-    players: new Map()
-  });
-  const roomRef = useRef<Room | null>(null);
-  const roomService = useRef(new RoomService());
-  const [roomReady, setRoomReady] = useState(false);
-
-  useEffect(() => {
-    const initializeRoom = async () => {
-      if (roomRef.current) return; // если комната уже есть то выходим
-      try {
-        await roomService.current.init("my_room");
-        roomRef.current = roomService.current.room;
-        setRoomReady(true);
-      } catch (error) {
-        console.error("Error initializing room:", error);
-      }
-    };
-
-    initializeRoom();
-  }, []);
-
-  // listeneres
-  useEffect(() => {
-    if (!roomReady || !roomRef.current) return;
-    const room = roomRef.current;
-
-    const handleStateChange = (state: ColyseusState) => {
-      setGameState({
-        ...gameState,
-        seats: state.seats.map((seat) => ({
-          index: seat.index,
-          playerId: seat.playerId
-        })),
-        players: new Map(state.players)
-      });
-    };
-
-    const handleMessage = (message: string) => {
-      console.log("Received message:", message);
-    };
-
-    room.onStateChange(handleStateChange);
-    room.onMessage("message", handleMessage);
-    return () => {
-      room?.removeAllListeners();
-    };
-  }, [roomReady]);
+  const { gameState, roomRef } = usePokerRoom();
 
   const handleSeatClick = (seatNumber: number) => {
     roomRef.current?.send("leaveGame");
@@ -106,7 +36,6 @@ const PokerRoom = () => {
         position: "relative"
       }}
     >
-      <p></p>
       {positions.map((position, index) => (
         <Seat
           key={index}
@@ -129,6 +58,7 @@ const PokerRoom = () => {
         src={image}
         style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "cover" }}
       />
+      <PokerActions room={roomRef.current} />
     </div>
   );
 };
