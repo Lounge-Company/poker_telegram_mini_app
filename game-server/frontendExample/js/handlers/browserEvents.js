@@ -11,6 +11,7 @@ export class BrowserEvents {
     this.setupCheck()
     this.setupBet()
     this.setupCall()
+    this.setupFold()
   }
 
   setupMessageForm() {
@@ -45,14 +46,12 @@ export class BrowserEvents {
     })
 
     readyButton.addEventListener('click', () => {
-      console.log('ready button clicked')
       this.room.send('ready')
     })
   }
   setupCheck() {
     const checkButton = document.getElementById('check')
     checkButton.addEventListener('click', () => {
-      console.log('setupCheck called')
       this.room.send('check')
     })
   }
@@ -60,7 +59,6 @@ export class BrowserEvents {
     const betButton = document.getElementById('bet')
     betButton.addEventListener('click', () => {
       const betAmmount = document.getElementById('bet-input')
-      console.log('bet value', betAmmount.value, 'type', typeof betAmmount.value)
       this.room.send('bet', parseInt(betAmmount.value, 10))
     })
   }

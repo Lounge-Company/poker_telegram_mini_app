@@ -6,7 +6,6 @@ export class TurnManager {
     return this.state.currentTurn
   }
   private state: GameState
-  private readonly TURN_TIME = 5000
   private clientService: ClientService
 
   constructor(state: GameState) {
@@ -23,10 +22,11 @@ export class TurnManager {
     return false
   }
   getStartingPlayer(): string {
-    console.log('seats :', this.state.seats.values())
-    const firstOccupiedSeat = this.state.seats.find((seat) => seat.playerId !== '')
-    console.log('firstOccupiedSeat :', firstOccupiedSeat)
-    return firstOccupiedSeat.playerId
+    for (let i = 0; i < this.state.seats.length; i++) {
+      if (this.state.seats[i].playerId) {
+        return this.state.seats[i].playerId
+      }
+    }
   }
   public allPlayersActed(): boolean {
     for (const player of this.state.players.values()) {

@@ -7,6 +7,8 @@ import { MyRoom } from '../rooms/MyRoom'
 import { RoundManager } from '../managers/RoundManager'
 import { PlayerManager } from '../managers/PlayerManager'
 import { registerGameEvents } from '../events/gameLoopEventRegister'
+import { PlayerState } from '../rooms/schema/PlayerState'
+import { RoundType } from '../types/GameTypes'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
@@ -53,18 +55,44 @@ export class GameLoop {
 
       // start betting round
 
+      // this.roundsCycle()
       await this.bettingRound()
 
-      // start new game
+      // check if game is over
+
       this.playerManager.resetPlayers()
       this.roundManager.resetRound()
       await new Promise((resolve) => setTimeout(resolve, this.gameloopDelay))
     }
     console.log('Game loop stopped.')
   }
+  async roundsCycle() {
+    while (this.roundManager.shouldContinueRounds()) {
+      await this.bettingRound()
+
+      switch (this.state.gamePhase) {
+        case RoundType.PREFLOP:
+          this.state.gamePhase = RoundType.FLOP
+          break
+        case RoundType.FLOP:
+          this.state.gamePhase = RoundType.TURN
+          break
+        case RoundType.TURN:
+          this.state.gamePhase = RoundType.RIVER
+          break
+        case RoundType.RIVER:
+          this.state.gamePhase = RoundType.SHOWDOWN
+          break
+        case RoundType.SHOWDOWN:
+          break
+        default:
+          break
+      }
+    }
+  }
   private async bettingRound(): Promise<boolean> {
     while (!this.turnManager.allPlayersActed()) {
-      let currentPlayer = this.state.players.get(this.state.currentTurn)
+      let currentPlayer: PlayerState = this.state.players.get(this.state.currentTurn)
       if (!currentPlayer) {
         return true
       }

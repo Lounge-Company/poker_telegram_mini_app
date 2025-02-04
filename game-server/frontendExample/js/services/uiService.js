@@ -11,9 +11,6 @@ export class UIService {
 
       if (seat.playerId) {
         const player = this.room.state.players.get(seat.playerId)
-        console.log('Player ID:', seat.playerId)
-        console.log('Player object keys:', Object.keys(player))
-        console.log('Player object values:', Object.values(player))
         if (!player) {
           return console.log('Player not found')
         }
@@ -23,10 +20,11 @@ export class UIService {
             <div class="player-chips">${player.chips}</div>
             <p class="table-player-bet-value seat-${index + 1}-bet">
               <span class="chips-value">
-                <span class="normal-value">0</span>
+                <span class="normal-value">${player.currentBet || 0}</span>
               </span>
             </p>
           `
+        console.log('player bet:', player.currentBet)
       } else {
         // Если игрока нет, показываем только номер места
         seatElement.innerHTML = `место ${index + 1}`
@@ -39,6 +37,7 @@ export class UIService {
     )
     console.log('playerId :', playerId)
     console.log('seatIndex :', seatIndex)
+    console.log('bet :', bet)
     const betElement = document.querySelector(`.seat-${seatIndex + 1}-bet`)
     const normalValueElement = betElement.querySelector('.normal-value')
     normalValueElement.textContent = bet
@@ -75,6 +74,10 @@ export class UIService {
       cardElement.textContent = `${card.rank}${card.suit}`
       playerCardsContainer.appendChild(cardElement)
     })
+  }
+  displayPot() {
+    const potElement = document.getElementById('pot-amount')
+    potElement.textContent = this.room.state.pot
   }
   highlightSeat(seatIndex) {
     const seatElement = document.getElementById(`seat-${seatIndex}`)

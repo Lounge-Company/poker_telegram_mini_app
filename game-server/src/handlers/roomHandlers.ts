@@ -4,6 +4,7 @@ import { RoomManager } from '../managers/RoomManager'
 import { ClientService } from '../services/clientService'
 import { GameLoop } from '../core/GameLoop'
 import { GameEventEmitter } from '../events/gameEvents'
+import { PlayerState } from '../rooms/schema/PlayerState'
 
 export class RoomHandlers {
   eventEmitter: GameEventEmitter
@@ -34,7 +35,7 @@ export class RoomHandlers {
   }
 
   private handlePlayerReady(client: any) {
-    const player = this.room.state.players.get(client.sessionId)
+    const player: PlayerState = this.room.state.players.get(client.sessionId)
     if (!player) return
     if (!player.ready) {
       player.ready = true
@@ -49,12 +50,10 @@ export class RoomHandlers {
   }
 
   private handlePlayerUnready(client: any) {
-    // refactor this
     const player = this.room.state.players.get(client.sessionId)
-    if (player.ready) {
-      player.ready = false
-      this.room.state.readyPlayers--
-    }
+    if (!player) return
+    player.ready = false
+    this.room.state.readyPlayers -= 1
   }
   private handlePlayerJoin(client: any, seatNumber: number) {
     if (typeof seatNumber !== 'number') {
