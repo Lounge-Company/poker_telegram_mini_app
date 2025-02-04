@@ -11,11 +11,18 @@ export class RoundManager {
   getCurrentRound() {
     return this.state.gamePhase
   }
-  shouldContinueBettingRound(): boolean {
-    return this.turnManager.allPlayersActed() // all players have acted
+  shouldContinueRounds(): boolean {
+    const activePlayers = Array.from(this.state.players.values()).filter(
+      (player) => !player.hasFolded
+    )
+    if (activePlayers.length < this.state.MIN_PLAYERS) {
+      return false
+    }
+    return
   }
   resetRound() {
     this.state.gamePhase = RoundType.PREFLOP
+    this.state.currentBet = 0
     this.state.currentTurn = this.turnManager.getStartingPlayer()
     console.log('set current turn :', this.state.currentTurn)
   }

@@ -66,7 +66,7 @@ export class ClientService {
   broadcastPlayerBet(room: any, playerId: string, bet: number) {
     room.broadcast('playerBet', { playerId, bet })
   }
-  broadcastPlayercheck(room: any, playerId: string) {
+  broadcastPlayerCheck(room: any, playerId: string) {
     room.broadcast('playerCheck', playerId)
   }
   broadcastPlayerCall(room: any, playerId: string) {
@@ -80,5 +80,8 @@ export class ClientService {
   }
   broadcastPlayerAllIn(room: any, playerId: string) {
     room.broadcast('playerAllIn', playerId)
+  }
+  broadcastPlayerWin(room: any, playerId: string) {
+    room.broadcast('playerWin', playerId)
   }
 }

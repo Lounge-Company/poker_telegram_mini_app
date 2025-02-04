@@ -27,11 +27,10 @@ export class GameHandlers {
    * // Client side
    * room.send("check");
    */
-  private handlePlayerCheck = (client: any) => {
-    console.log('handlePlayerCheck :', client.sessionId)
-    console.log('curent bet :', this.state.currentBet)
-    console.log('curent turn :', this.state.currentTurn)
-    this.actionService.check(client.sessionId)
+  private handlePlayerCheck(client: any) {
+    const success = this.actionService.check(client.sessionId)
+    if (!success) return
+    this.clientService.broadcastPlayerCheck(this.room, client.sessionId)
   }
 
   /**
@@ -43,12 +42,22 @@ export class GameHandlers {
    */
   private handlePlayerCall(client: any) {
     console.log('handlePlayerCall :', client.sessionId)
-    this.actionService.call(client.sessionId)
+    const success = this.actionService.call(client.sessionId)
+    if (!success) return
+    this.clientService.broadcastPlayerCall(this.room, client.sessionId)
   }
+  /**
+   * Handles player's Fold action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("fold");
+   */
   private handlePlayerFold(client: any) {
     console.log('handlePlayerFold :', client.sessionId)
-    const player = this.room.state.players.get(client.sessionId)
-    player.acted = true
+    const success = this.actionService.fold(client.sessionId)
+    if (!success) return
+    this.clientService.broadcastPlayerFold(this.room, client.sessionId)
   }
   /**
    * Handles player's bet action by deducting the bet amount from player's chips
@@ -60,9 +69,11 @@ export class GameHandlers {
    * room.send("bet", amount);
    */
 
-  private handlePlayerBet = (client: any, amount: number) => {
+  private handlePlayerBet(client: any, amount: number) {
+    if (typeof amount !== 'number' || isNaN(amount)) return
     console.log('handlePlayerBet :', client.sessionId, amount)
-    this.actionService.bet(client.sessionId, amount)
+    const success = this.actionService.bet(client.sessionId, amount)
+    if (!success) return
     this.clientService.broadcastPlayerBet(this.room, client.sessionId, amount)
   }
 }
