@@ -3,11 +3,11 @@ import PokerRoom from "../PokerRoom/PokerRoom";
 const Sandbox = () => {
   return (
     <div
+      className={
+        "flex w-full h-full max-w-full max-h-full items-center justify-center"
+      }
       style={{
-        width: "100%",
-        height: "100vh",
-        alignItems: "center",
-        display: "flex"
+        height: "100vh"
       }}
     >
       <div
