@@ -5,7 +5,11 @@ export class RoomManager {
   constructor(private state: GameState) {
     this.initializeSeats()
   }
-  handlePlayerJoinToGame(playerId: string, seatNumber: number): boolean {
+  handlePlayerJoinToGame(
+    playerId: string,
+    name: string,
+    seatNumber: number
+  ): boolean {
     console.log('playerId :', playerId, 'seatNumber :', seatNumber)
     const spectator = this.state.spectators.get(playerId)
     if (!spectator) return false
@@ -15,6 +19,7 @@ export class RoomManager {
     }
     if (seat && !seat.playerId) {
       const clonedPlayer = spectator.clone()
+      if (name) clonedPlayer.name = name
       this.state.players.set(playerId, clonedPlayer)
       this.state.spectators.delete(playerId)
 

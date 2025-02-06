@@ -55,26 +55,41 @@ export class RoomHandlers {
     player.ready = false;
     this.room.state.readyPlayers -= 1;
   }
-  private handlePlayerJoin(client: any, seatNumber: number) {
-    if (typeof seatNumber !== "number") {
-      this.clientService.sendSystemMessage(client, "Invalid seat number");
-      return;
+  
+  private handlePlayerJoin(client: any, data: { seatNumber: number; name: string }) {
+    // refactor this
+    if (
+      typeof data.seatNumber !== 'number' ||
+      data.seatNumber < 0 ||
+      data.seatNumber > this.room.state.MAX_SEATS
+    ) {
+      this.clientService.sendSystemMessage(client, 'Invalid seat number')
+      return
+    }
+    if (
+      typeof data.name !== 'string' ||
+      data.name.length < 3 ||
+      data.name.length > 20
+    ) {
+      this.clientService.sendSystemMessage(client, 'Invalid name')
+      return
     }
     const success = this.roomManager.handlePlayerJoinToGame(
       client.sessionId,
-      seatNumber
-    );
+      data.name,
+      data.seatNumber
+    )
     if (!success) {
       this.clientService.sendSystemMessage(
         client,
-        `seat ${seatNumber} is already taken`
-      );
-      return;
+        `seat ${data.seatNumber} is already taken`
+      )
+      return
     }
     this.clientService.broadcastSystemMessage(
       this.room,
-      `Player ${client.sessionId} joined to at seat ${seatNumber}`
-    );
+      `Player ${client.sessionId} joined to at seat ${data.seatNumber}`
+    )
   }
   private handlePlayerLeave(client: any) {
     const seatNumber = this.room.state.seats.find(
