@@ -10,7 +10,6 @@ export class RoomManager {
     name: string,
     seatNumber: number
   ): boolean {
-    console.log('playerId :', playerId, 'seatNumber :', seatNumber)
     const spectator = this.state.spectators.get(playerId)
     if (!spectator) return false
     const seat = this.state.seats[seatNumber]
@@ -24,11 +23,7 @@ export class RoomManager {
       this.state.spectators.delete(playerId)
 
       seat.playerId = playerId
-      // console.log('seats :', JSON.stringify(this.state.seats))
     }
-    console.log('player name ', this.state.players.get(playerId).name)
-    // console.log('spectators :', this.state.spectators.keys())
-    // console.log('players :', this.state.players.keys())
     return true
   }
 

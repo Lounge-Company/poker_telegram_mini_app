@@ -23,8 +23,6 @@ export class RoomHandlers {
     this.room.onMessage('leaveGame', this.handlePlayerLeave.bind(this))
     this.room.onMessage('ready', this.handlePlayerReady.bind(this))
     this.room.onMessage('unready', this.handlePlayerUnready.bind(this))
-
-    console.log('room handlers registered successfully')
   }
 
   private handleChatMessage(client: any, message: string) {
@@ -83,10 +81,10 @@ export class RoomHandlers {
       )
       return
     }
-    this.clientService.broadcastSystemMessage(
-      this.room,
-      `Player ${client.sessionId} joined to at seat ${data.seatNumber}`
-    )
+    // this.clientService.broadcastSystemMessage(
+    //   this.room,
+    //   `Player ${client.sessionId} joined to at seat ${data.seatNumber}`
+    // )
   }
   private handlePlayerLeave(client: any) {
     const seatNumber = this.room.state.seats.find(
