@@ -29,8 +29,6 @@ export class MyRoom extends Room<GameState> {
   }
 
   onJoin(client: Client) {
-    console.log(`${client.sessionId} joined the room`)
-
     // Создаем нового игрока, используя PlayerState
     const newPlayer = new PlayerState()
     newPlayer.id = client.sessionId
@@ -38,13 +36,12 @@ export class MyRoom extends Room<GameState> {
     // Добавляем нового игрока в список наблюдателей в состоянии игры
     this.state.spectators.set(client.sessionId, newPlayer)
 
-    this.ClientService.broadcastSystemMessage(
-      this,
-      `Player ${client.sessionId} joined the room`
-    )
+    // this.ClientService.broadcastSystemMessage(
+    //   this,
+    //   `Player ${client.sessionId} joined the room`
+    // )
   }
   onLeave(client: Client) {
-    console.log(client.sessionId, 'left!')
     const seat = this.state.seats.find((s) => s.playerId === client.sessionId)
     if (seat) {
       seat.playerId = ''
@@ -63,6 +60,6 @@ export class MyRoom extends Room<GameState> {
     // }
   }
   onDispose() {
-    console.log('room', this.roomId, 'disposing...')
+    // console.log('room', this.roomId, 'disposing...')
   }
 }

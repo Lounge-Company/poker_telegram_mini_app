@@ -5,9 +5,9 @@ export class MessageService {
   createChatMessage(player: PlayerState, message: string) {
     return {
       playerId: player.id,
-      playerName: player.name || `Player${Math.floor(Math.random() * 1000)}`,
+      playerName: player.name || `unknown`,
       message: message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
   }
 
@@ -16,7 +16,7 @@ export class MessageService {
       playerId: 'system',
       playerName: 'System',
       message: message,
-      timestamp: new Date().toISOString()
+      timestamp: new Date().toISOString(),
     }
   }
 }
