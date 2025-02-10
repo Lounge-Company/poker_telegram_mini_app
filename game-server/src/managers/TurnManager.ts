@@ -13,14 +13,6 @@ export class TurnManager {
     this.clientService = new ClientService()
   }
 
-  private hasActivePlayers(): boolean {
-    for (const player of this.state.players.values()) {
-      if (!player.hasFolded && !player.isAllIn) {
-        return true
-      }
-    }
-    return false
-  }
   getStartingPlayer(): string {
     for (let i = 0; i < this.state.seats.length; i++) {
       if (this.state.seats[i].playerId) {
@@ -31,23 +23,6 @@ export class TurnManager {
   public allPlayersActed(): boolean {
     for (const player of this.state.players.values()) {
       if (!player.acted) {
-        return false
-      }
-    }
-    return true
-  }
-  private allBetsEqual(): boolean {
-    let targetBet = this.state.currentBet
-
-    for (const player of this.state.players.values()) {
-      // Skip folded players
-      if (player.hasFolded) continue
-
-      // All-in players are considered to have matched their maximum possible bet
-      if (player.isAllIn) continue
-
-      // Check if active player's bet matches current bet
-      if (player.currentBet !== targetBet) {
         return false
       }
     }

@@ -1,11 +1,16 @@
-import { Room } from 'colyseus'
+import { Room, Client } from 'colyseus'
 import { MessageService } from '../services/messageService'
 import { RoomManager } from '../managers/RoomManager'
 import { ClientService } from '../services/clientService'
-import { GameLoop } from '../core/GameLoop'
 import { GameEventEmitter } from '../events/gameEvents'
 import { PlayerState } from '../rooms/schema/PlayerState'
-import { isValidSeat } from '../utils/isValidSeat'
+import { isValidName, isValidSeat } from '../utils/isValid'
+import { canStartGame } from '../utils/game/canStart'
+import { MyRoom } from '../rooms/MyRoom'
+import {
+  onMessage,
+  registerHandlers,
+} from '../utils/decorators/registerHandler.decorator'
 
 export class RoomHandlers {
   eventEmitter: GameEventEmitter
@@ -15,69 +20,61 @@ export class RoomHandlers {
     this.MessageService = new MessageService()
     this.clientService = new ClientService()
     this.eventEmitter = GameEventEmitter.getInstance()
+    registerHandlers(this, this.room)
   }
 
-  public registerHandlers() {
-    this.room.onMessage('message', this.handleChatMessage.bind(this))
-    this.room.onMessage('joinGame', this.handlePlayerJoin.bind(this))
-    this.room.onMessage('leaveGame', this.handlePlayerLeave.bind(this))
-    this.room.onMessage('ready', this.handlePlayerReady.bind(this))
-    this.room.onMessage('unready', this.handlePlayerUnready.bind(this))
-  }
-
-  private handleChatMessage(client: any, message: string) {
+  @onMessage('message')
+  private handleChatMessage(client: Client, message: string) {
     // refactor this
     const player =
       this.room.state.players.get(client.sessionId) ||
       this.room.state.spectators.get(client.sessionId)
     this.clientService.broadcastMessage(this.room, message, player)
   }
-
-  private handlePlayerReady(client: any) {
+  @onMessage('ready')
+  private handlePlayerReady(client: Client) {
     const player: PlayerState = this.room.state.players.get(client.sessionId)
     if (!player) return
-    if (!player.ready) {
-      player.ready = true
-      this.room.state.readyPlayers++
+    if (player.ready) return
+    player.ready = true
+    this.room.state.readyPlayers++
 
-      if (this.canStartGame()) {
-        this.room.state.readyPlayers = 0
-        this.eventEmitter.emit('gameStart')
-        this.clientService.broadcastSystemMessage(this.room, 'Game started!')
-      }
+    if (canStartGame(this.room as MyRoom)) {
+      this.room.state.readyPlayers = 0
+      this.eventEmitter.emit('gameStart')
+      this.clientService.broadcastSystemMessage(this.room, 'Game started!')
     }
   }
-
-  private handlePlayerUnready(client: any) {
+  @onMessage('unready')
+  private handlePlayerUnready(client: Client) {
     const player = this.room.state.players.get(client.sessionId)
     if (!player) return
     player.ready = false
     this.room.state.readyPlayers -= 1
   }
-
-  private handlePlayerJoin(client: any, data: { seatNumber: number; name: string }) {
+  @onMessage('joinGame')
+  private handlePlayerJoin(
+    client: Client,
+    data: { seatIndex: number; name: string }
+  ) {
     // refactor this
-    if (typeof data.seatNumber !== 'number' || isValidSeat(data.seatNumber)) {
+    if (isValidSeat(data.seatIndex)) {
       this.clientService.sendSystemMessage(client, 'Invalid seat number')
       return
     }
-    if (
-      typeof data.name !== 'string' ||
-      data.name.length < 3 ||
-      data.name.length > 20
-    ) {
+    if (isValidName(data.name)) {
       this.clientService.sendSystemMessage(client, 'Invalid name')
       return
     }
     const success = this.roomManager.handlePlayerJoinToGame(
       client.sessionId,
       data.name,
-      data.seatNumber
+      data.seatIndex
     )
     if (!success) {
       this.clientService.sendSystemMessage(
         client,
-        `seat ${data.seatNumber} is already taken`
+        `seat ${data.seatIndex + 1} is already taken`
       )
       return
     }
@@ -86,7 +83,9 @@ export class RoomHandlers {
     //   `Player ${client.sessionId} joined to at seat ${data.seatNumber}`
     // )
   }
-  private handlePlayerLeave(client: any) {
+  @onMessage('leaveGame')
+  private handlePlayerLeave(client: Client) {
+    // refactor this
     const seatNumber = this.room.state.seats.find(
       (s: { playerId: any }) => s.playerId === client.sessionId
     )?.index
@@ -98,11 +97,5 @@ export class RoomHandlers {
         `Player ${client.sessionId} left seat ${seatNumber + 1}`
       )
     }
-  }
-  private canStartGame(): boolean {
-    return (
-      this.room.state.readyPlayers === this.room.state.players.size &&
-      this.room.state.players.size >= this.room.state.MIN_PLAYERS
-    )
   }
 }
