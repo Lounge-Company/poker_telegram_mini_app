@@ -24,7 +24,7 @@ export class MyRoom extends Room<GameState> {
     this.ClientService = new ClientService()
 
     // this.RoomHandlers.registerHandlers()
-    this.GameHandlers.registerHandlers()
+    // this.GameHandlers.registerHandlers()
   }
 
   onJoin(client: Client) {

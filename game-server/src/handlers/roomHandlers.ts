@@ -23,16 +23,31 @@ export class RoomHandlers {
     registerHandlers(this, this.room)
   }
 
+  /**
+   * Handles player's call action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("message");
+   */
   @onMessage('message')
-  private handleChatMessage(client: Client, message: string) {
+  handleChatMessage(client: Client, message: string) {
     // refactor this
     const player =
       this.room.state.players.get(client.sessionId) ||
       this.room.state.spectators.get(client.sessionId)
     this.clientService.broadcastMessage(this.room, message, player)
   }
+
+  /**
+   * Handles player's call action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("ready");
+   */
   @onMessage('ready')
-  private handlePlayerReady(client: Client) {
+  handlePlayerReady(client: Client) {
     const player: PlayerState = this.room.state.players.get(client.sessionId)
     if (!player) return
     if (player.ready) return
@@ -45,18 +60,31 @@ export class RoomHandlers {
       this.clientService.broadcastSystemMessage(this.room, 'Game started!')
     }
   }
+
+  /**
+   * Handles player's call action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("unready");
+   */
   @onMessage('unready')
-  private handlePlayerUnready(client: Client) {
+  handlePlayerUnready(client: Client) {
     const player = this.room.state.players.get(client.sessionId)
     if (!player) return
     player.ready = false
     this.room.state.readyPlayers -= 1
   }
+
+  /**
+   * Handles player's call action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("joinGame");
+   */
   @onMessage('joinGame')
-  private handlePlayerJoin(
-    client: Client,
-    data: { seatIndex: number; name: string }
-  ) {
+  handlePlayerJoin(client: Client, data: { seatIndex: number; name: string }) {
     // refactor this
     if (isValidSeat(data.seatIndex)) {
       this.clientService.sendSystemMessage(client, 'Invalid seat number')
@@ -83,8 +111,16 @@ export class RoomHandlers {
     //   `Player ${client.sessionId} joined to at seat ${data.seatNumber}`
     // )
   }
+
+  /**
+   * Handles player's call action
+   * @param client - Client performing the action
+   * @example
+   * // Client side
+   * room.send("leaveGame");
+   */
   @onMessage('leaveGame')
-  private handlePlayerLeave(client: Client) {
+  handlePlayerLeave(client: Client) {
     // refactor this
     const seatNumber = this.room.state.seats.find(
       (s: { playerId: any }) => s.playerId === client.sessionId
