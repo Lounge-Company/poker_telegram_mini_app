@@ -1,3 +1,3 @@
 export function isValidSeat(seatNumber: number): boolean {
-  return seatNumber >= 1 && seatNumber <= 9
+  return seatNumber >= 1 && seatNumber <= 10
 }
