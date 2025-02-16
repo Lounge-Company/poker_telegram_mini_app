@@ -86,11 +86,11 @@ export class RoomHandlers {
   @onMessage('joinGame')
   handlePlayerJoin(client: Client, data: { seatIndex: number; name: string }) {
     // refactor this
-    if (isValidSeat(data.seatIndex)) {
+    if (!isValidSeat(data.seatIndex)) {
       this.clientService.sendSystemMessage(client, 'Invalid seat number')
       return
     }
-    if (isValidName(data.name)) {
+    if (!isValidName(data.name)) {
       this.clientService.sendSystemMessage(client, 'Invalid name')
       return
     }
