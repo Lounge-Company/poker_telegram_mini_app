@@ -5,6 +5,8 @@ export class RoomManager {
   constructor(private state: GameState) {
     this.initializeSeats()
   }
+  handleJoinRoom(playerId: string): void {}
+
   handlePlayerJoinToGame(
     playerId: string,
     name: string,

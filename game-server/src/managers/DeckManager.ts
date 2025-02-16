@@ -1,5 +1,5 @@
 import { Card } from '../rooms/schema/Card'
-import { CARD_VALUES } from '../utils/CardUtils'
+import { CARD_VALUES } from '../utils/game/CardUtils'
 
 export class DeckManager {
   createDeck(): Card[] {

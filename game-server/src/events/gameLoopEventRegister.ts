@@ -12,8 +12,4 @@ export const registerGameEvents = (gameLoop: GameLoop) => {
   eventEmitter.on('gameEnd', () => {
     gameLoop.stopGame()
   })
-
-  eventEmitter.on('roundStart', () => {
-    gameLoop.gameLoop()
-  })
 }
