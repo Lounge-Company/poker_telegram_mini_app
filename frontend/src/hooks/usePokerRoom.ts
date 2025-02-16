@@ -33,6 +33,7 @@ const usePokerRoom = () => {
     const room = roomRef.current;
 
     const handleStateChange = (state: ColyseusState) => {
+      console.log("State changed:", state);
       setGameState({
         seats: state.seats.map((seat) => ({
           index: seat.index,
@@ -41,6 +42,12 @@ const usePokerRoom = () => {
         players: new Map(state.players)
       });
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleServerMessages = (message: any) => {
+      console.log("Server message:", message);
+    };
+
+    room.onMessage("message", handleServerMessages);
 
     room.onStateChange(handleStateChange);
     return () => {
