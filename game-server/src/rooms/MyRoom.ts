@@ -2,7 +2,6 @@ import { Room, Client } from '@colyseus/core'
 import { PlayerState } from './schema/PlayerState'
 import { GameState } from './schema/GameState'
 import { RoomHandlers } from '../handlers/roomHandlers'
-import { MessageService } from '../services/messageService'
 import { RoomManager } from '../managers/RoomManager'
 import { GameLoop } from '../core/GameLoop'
 import { ClientService } from '../services/clientService'
@@ -24,16 +23,15 @@ export class MyRoom extends Room<GameState> {
     this.GameHandlers = new GameHandlers(this, this.state)
     this.ClientService = new ClientService()
 
-    this.RoomHandlers.registerHandlers()
-    this.GameHandlers.registerHandlers()
+    // this.RoomHandlers.registerHandlers()
+    // this.GameHandlers.registerHandlers()
   }
 
   onJoin(client: Client) {
-    // Создаем нового игрока, используя PlayerState
+    // refactor this
     const newPlayer = new PlayerState()
     newPlayer.id = client.sessionId
     newPlayer.name = `Player ${Math.floor(Math.random() * 1000)}`
-    // Добавляем нового игрока в список наблюдателей в состоянии игры
     this.state.spectators.set(client.sessionId, newPlayer)
 
     // this.ClientService.broadcastSystemMessage(
@@ -42,6 +40,7 @@ export class MyRoom extends Room<GameState> {
     // )
   }
   onLeave(client: Client) {
+    // refactor this
     const seat = this.state.seats.find((s) => s.playerId === client.sessionId)
     if (seat) {
       seat.playerId = ''
@@ -54,10 +53,6 @@ export class MyRoom extends Room<GameState> {
       this,
       `Player ${client.sessionId} left the game`
     )
-    // Если в комнате осталось менее двух игроков, завершаем игру
-    // if (this.state.players.size < 2) {
-    //   this.GameManager.endGame()
-    // }
   }
   onDispose() {
     // console.log('room', this.roomId, 'disposing...')

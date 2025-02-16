@@ -1,9 +1,12 @@
-import { Room } from 'colyseus'
-
+import { Room, Client } from 'colyseus'
 import { GameState } from '../rooms/schema/GameState'
 import { TurnValidator } from '../midleware/TurnValidator'
 import { ActionService } from '../services/actionService'
 import { ClientService } from '../services/clientService'
+import {
+  registerHandlers,
+  onMessage,
+} from '../utils/decorators/registerHandler.decorator'
 
 export class GameHandlers {
   actionService: ActionService
@@ -11,13 +14,7 @@ export class GameHandlers {
   constructor(private room: Room, private state: GameState) {
     this.actionService = new ActionService(state)
     this.clientService = new ClientService()
-  }
-  registerHandlers() {
-    const validateTurn = TurnValidator.validate(this.state)
-    this.room.onMessage('bet', validateTurn(this.handlePlayerBet.bind(this)))
-    this.room.onMessage('check', validateTurn(this.handlePlayerCheck.bind(this)))
-    this.room.onMessage('call', validateTurn(this.handlePlayerCall.bind(this)))
-    this.room.onMessage('fold', validateTurn(this.handlePlayerFold.bind(this)))
+    registerHandlers(this, this.room)
   }
 
   /**
@@ -27,7 +24,8 @@ export class GameHandlers {
    * // Client side
    * room.send("check");
    */
-  private handlePlayerCheck(client: any) {
+  @onMessage('check')
+  handlePlayerCheck(client: Client) {
     const success = this.actionService.check(client.sessionId)
     if (!success) return
     this.clientService.broadcastPlayerCheck(this.room, client.sessionId)
@@ -40,12 +38,14 @@ export class GameHandlers {
    * // Client side
    * room.send("call");
    */
-  private handlePlayerCall(client: any) {
+  @onMessage('call')
+  handlePlayerCall(client: Client) {
     console.log('handlePlayerCall :', client.sessionId)
     const success = this.actionService.call(client.sessionId)
     if (!success) return
     this.clientService.broadcastPlayerCall(this.room, client.sessionId)
   }
+
   /**
    * Handles player's Fold action
    * @param client - Client performing the action
@@ -53,12 +53,14 @@ export class GameHandlers {
    * // Client side
    * room.send("fold");
    */
-  private handlePlayerFold(client: any) {
+  @onMessage('fold')
+  handlePlayerFold(client: Client) {
     console.log('handlePlayerFold :', client.sessionId)
     const success = this.actionService.fold(client.sessionId)
     if (!success) return
     this.clientService.broadcastPlayerFold(this.room, client.sessionId)
   }
+
   /**
    * Handles player's bet action by deducting the bet amount from player's chips
    * and adding it to the pot.
@@ -68,8 +70,8 @@ export class GameHandlers {
    * // Client side
    * room.send("bet", amount);
    */
-
-  private handlePlayerBet(client: any, amount: number) {
+  @onMessage('bet')
+  handlePlayerBet(client: Client, amount: number) {
     if (typeof amount !== 'number' || isNaN(amount)) return
     console.log('handlePlayerBet :', client.sessionId, amount)
     const success = this.actionService.bet(client.sessionId, amount)
