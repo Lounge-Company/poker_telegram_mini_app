@@ -72,9 +72,10 @@ export class GameHandlers {
    */
   @onMessage("bet")
   handlePlayerBet(client: Client, amount: number) {
-    console.log("handlePlayerBet :", client.sessionId, amount);
-    const success = this.actionService.bet(client.sessionId, amount);
-    if (!success) return;
-    this.clientService.broadcastPlayerBet(this.room, client.sessionId, amount);
+    if (isNaN(amount)) return
+    console.log('handlePlayerBet :', client.sessionId, amount)
+    const success = this.actionService.bet(client.sessionId, amount)
+    if (!success) return
+    this.clientService.broadcastPlayerBet(this.room, client.sessionId, amount)
   }
 }

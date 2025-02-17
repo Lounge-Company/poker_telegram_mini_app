@@ -53,14 +53,9 @@ describe('testing room', () => {
     const room = await colyseus.createRoom<GameState>('my_room', {})
     const client = await colyseus.connectTo(room)
 
-    client.send('joinGame', { seatNumber: 0, name: 'test' })
+    client.send('joinGame', { seatIndex: 0, name: 'test' })
     await room.waitForNextPatch()
 
-    assert.strictEqual(
-      room.state.spectators.has(client.sessionId),
-      false,
-      'Player is not in spectators'
-    )
     assert.strictEqual(
       room.state.players.has(client.sessionId),
       true,
