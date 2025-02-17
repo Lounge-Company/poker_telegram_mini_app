@@ -53,11 +53,26 @@ const PokerRoom = () => {
               gameState.seats[idx] !== undefined &&
               gameState.seats[idx].playerId !== ""
             }
-            player={
-              gameState.players.get(gameState.seats[idx]?.playerId)?.name || ""
+            player={gameState.players.get(gameState.seats[idx]?.playerId)}
+            turn={
+              gameState.players.get(gameState.currentTurn) ===
+              gameState.players.get(gameState.seats[idx]?.playerId)
             }
           />
         ))}
+        {gameState.gameStarted && (
+          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+            <div className="bg-black bg-opacity-50 text-white p-4 rounded-lg">
+              <p>Game Started</p>
+              <p>Bank: {gameState.pot}</p>
+              <p>Turn Time: {gameState.TURN_TIME}</p>
+              <p>
+                Current turn:{" "}
+                {gameState.players.get(gameState.currentTurn)?.name}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className="h-20 w-full flex items-center justify-center">
         <PokerActions room={roomRef.current} />

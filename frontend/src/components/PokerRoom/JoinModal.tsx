@@ -18,12 +18,11 @@ const JoinModal = ({
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
     const name = formData.get("name") as string;
-    // const stack = formData.get("stack") as string;
-    // console.log(`name ${name}\n stack ${stack}`);
+    console.log("seatNumber", seatNumber);
     room?.send("leaveGame");
-    if (seatNumber && name)
-      // && stack)
-      room?.send("joinGame", { seatNumber, name });
+    const seatIndex = seatNumber;
+    if (typeof seatNumber == "number" && name)
+      room?.send("joinGame", { seatIndex, name });
     closeModal();
   };
 

@@ -22,7 +22,7 @@ export class GameState extends Schema {
   @type("number") pot = 0;
   @type("number") currentBet = 0;
   @type("number") gamePhase: RoundType = RoundType.PREFLOP; // preFlop, flop, turn, river
-  @type("number") TURN_TIME = 20000;
+  @type("number") TURN_TIME = 5000;
   @type("number") MAX_SEATS = 10;
   @type("number") MIN_PLAYERS = 2;
 }
