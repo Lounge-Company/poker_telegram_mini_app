@@ -1,3 +1,5 @@
+import { PlayerState } from "src/types/game";
+
 interface SeatProps {
   x: number;
   y: number;
@@ -6,7 +8,8 @@ interface SeatProps {
   num: number;
   onClick: (seatNumber: number) => void;
   isOccupied?: boolean;
-  player?: string;
+  player?: PlayerState;
+  turn?: boolean;
 }
 
 const Seat = ({
@@ -17,7 +20,8 @@ const Seat = ({
   dy = 0,
   onClick,
   isOccupied,
-  player
+  player,
+  turn
 }: SeatProps) => {
   if (!isOccupied) {
     return (
@@ -34,7 +38,7 @@ const Seat = ({
       >
         Seat {num}
         <br></br>
-        {player}
+        {player?.name}
       </div>
     );
   } else {
@@ -50,11 +54,12 @@ const Seat = ({
         }}
       >
         <div
-          className={
-            "w-full h-12 bg-gradient-to-r from-gray-700 to-gray-900 rounded-lg flex justify-center items-center text-white font-semibold text-sm shadow-lg"
-          }
+          className={`w-full h-12 bg-gradient-to-r  ${
+            turn ? "from-red-700 to-red-900" : "from-gray-700 to-gray-900"
+          }  rounded-lg flex justify-center items-center text-white font-semibold text-sm shadow-lg relative`}
         >
-          {player}
+          {player?.name}
+          <div className="absolute top-0 right-2">{player?.chips}</div>
         </div>
       </div>
     );

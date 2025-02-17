@@ -5,72 +5,30 @@ import PokerActions from "./PokerActions";
 import usePokerRoom from "src/hooks/usePokerRoom";
 import { useEffect, useState } from "react";
 import { SeatType } from "src/types/game";
-
-const positions = [
-  { x: 50, y: 0, dx: -50, dy: 0, idx: 0 },
-  { x: 0, y: 10, dx: 0, dy: 0, idx: 1 },
-  { x: 0, y: 30, dx: 0, dy: 0, idx: 2 },
-  { x: 0, y: 70, dx: 0, dy: -100, idx: 3 },
-  { x: 0, y: 90, dx: 0, dy: -100, idx: 4 },
-  { x: 50, y: 100, dx: -50, dy: -100, idx: 5 },
-  { x: 100, y: 90, dx: -100, dy: -100, idx: 6 },
-  { x: 100, y: 70, dx: -100, dy: -100, idx: 7 },
-  { x: 100, y: 30, dx: -100, dy: 0, idx: 8 },
-  { x: 100, y: 10, dx: -100, dy: 0, idx: 9 }
-];
-
-const rotateArray = (arr: typeof positions, steps: number) => {
-  return [...arr.slice(steps), ...arr.slice(0, steps)];
-};
+import JoinModal from "./JoinModal";
+import { positions, rotateArray } from "src/services/funcService";
 
 const PokerRoom = () => {
   const { gameState, roomRef } = usePokerRoom();
   const [rotatedPositions, setRotatedPositions] = useState(positions);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [seatNumber, setSeatNumber] = useState<number | undefined>(undefined);
 
   useEffect(() => {
     const playerSeatIndex = gameState.seats.findIndex(
       (seat: SeatType) => seat.playerId === roomRef.current?.sessionId
     );
-
-    if (playerSeatIndex !== -1) {
-      switch (playerSeatIndex) {
-        case 0:
-          setRotatedPositions(rotateArray(positions, 5));
-          break;
-        case 1:
-          setRotatedPositions(rotateArray(positions, 4));
-          break;
-        case 2:
-          setRotatedPositions(rotateArray(positions, 3));
-          break;
-        case 3:
-          setRotatedPositions(rotateArray(positions, 2));
-          break;
-        case 4:
-          setRotatedPositions(rotateArray(positions, 1));
-          break;
-        case 5:
-          setRotatedPositions(rotateArray(positions, 0));
-          break;
-        case 6:
-          setRotatedPositions(rotateArray(positions, -1));
-          break;
-        case 7:
-          setRotatedPositions(rotateArray(positions, -2));
-          break;
-        case 8:
-          setRotatedPositions(rotateArray(positions, -3));
-          break;
-        case 9:
-          setRotatedPositions(rotateArray(positions, -4));
-          break;
-      }
-    }
-  }, [gameState.seats]);
+    if (playerSeatIndex !== -1)
+      setRotatedPositions(rotateArray(positions, 5 - playerSeatIndex));
+  }, [gameState.seats, roomRef]);
 
   const handleSeatClick = (seatNumber: number) => {
-    roomRef.current?.send("leaveGame");
-    roomRef.current?.send("joinGame", seatNumber);
+    setSeatNumber(seatNumber);
+    setModalIsOpen(!modalIsOpen);
+  };
+
+  const closeModal = () => {
+    setModalIsOpen(false);
   };
 
   return (
@@ -95,15 +53,36 @@ const PokerRoom = () => {
               gameState.seats[idx] !== undefined &&
               gameState.seats[idx].playerId !== ""
             }
-            player={
-              gameState.players.get(gameState.seats[idx]?.playerId)?.name || ""
+            player={gameState.players.get(gameState.seats[idx]?.playerId)}
+            turn={
+              gameState.players.get(gameState.currentTurn) ===
+              gameState.players.get(gameState.seats[idx]?.playerId)
             }
           />
         ))}
+        {gameState.gameStarted && (
+          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
+            <div className="bg-black bg-opacity-50 text-white p-4 rounded-lg">
+              <p>Game Started</p>
+              <p>Bank: {gameState.pot}</p>
+              <p>Turn Time: {gameState.TURN_TIME}</p>
+              <p>
+                Current turn:{" "}
+                {gameState.players.get(gameState.currentTurn)?.name}
+              </p>
+            </div>
+          </div>
+        )}
       </div>
       <div className="h-20 w-full flex items-center justify-center">
         <PokerActions room={roomRef.current} />
       </div>
+      <JoinModal
+        modalIsOpen={modalIsOpen}
+        closeModal={closeModal}
+        seatNumber={seatNumber}
+        room={roomRef.current}
+      />
     </div>
   );
 };
