@@ -7,7 +7,12 @@ import RoomService from "src/services/RoomService";
 const usePokerRoom = () => {
   const [gameState, setGameState] = useState<ColyseusState>({
     seats: [],
-    players: new Map()
+    players: new Map(),
+    currentTurn: "",
+    gameStarted: false,
+    pot: 0,
+    currentBet: 0,
+    TURN_TIME: 20000
   });
   const roomRef = useRef<Room | null>(null);
   const roomService = useRef(new RoomService());
@@ -33,14 +38,26 @@ const usePokerRoom = () => {
     const room = roomRef.current;
 
     const handleStateChange = (state: ColyseusState) => {
+      console.log("State changed:", state);
       setGameState({
         seats: state.seats.map((seat) => ({
           index: seat.index,
           playerId: seat.playerId
         })),
-        players: new Map(state.players)
+        players: new Map(state.players),
+        currentTurn: state.currentTurn,
+        gameStarted: state.gameStarted,
+        pot: state.pot,
+        currentBet: state.currentBet,
+        TURN_TIME: state.TURN_TIME
       });
     };
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const handleServerMessages = (message: any) => {
+      console.log("Server message:", message);
+    };
+
+    room.onMessage("message", handleServerMessages);
 
     room.onStateChange(handleStateChange);
     return () => {

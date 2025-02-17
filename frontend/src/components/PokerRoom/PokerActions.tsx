@@ -20,7 +20,18 @@ const PokerActions = ({ room }: PokerActionsProps) => {
 
   const handleAction = (action: keyof typeof ACTIONS) => {
     if (room) {
-      room.send(ACTIONS[action]);
+      switch (action) {
+        case ACTIONS.raise:
+          room.send("bet", 10);
+          break;
+        case ACTIONS.call:
+        case ACTIONS.check:
+        case ACTIONS.fold:
+          room.send(ACTIONS[action]);
+          break;
+        default:
+          break;
+      }
     }
   };
 
