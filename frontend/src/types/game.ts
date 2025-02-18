@@ -1,11 +1,19 @@
 export type ColyseusState = {
-  seats: SeatType[];
   players: Map<string, PlayerState>;
+  seats: SeatType[];
+  communityCards: CardType[];
   currentTurn: string;
   gameStarted: boolean;
   pot: number;
   currentBet: number;
   TURN_TIME: number;
+  // мои поля
+  playerCards: CardType[];
+};
+
+export type CardType = {
+  suit: string;
+  rank: string;
 };
 
 export type SeatType = {
