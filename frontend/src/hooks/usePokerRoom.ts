@@ -1,18 +1,20 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Room } from "colyseus.js";
-import { ColyseusState } from "src/types/game";
+import { CardType, ColyseusState } from "src/types/game";
 import RoomService from "src/services/RoomService";
 
 const usePokerRoom = () => {
   const [gameState, setGameState] = useState<ColyseusState>({
     seats: [],
     players: new Map(),
+    communityCards: [],
     currentTurn: "",
     gameStarted: false,
     pot: 0,
     currentBet: 0,
-    TURN_TIME: 20000
+    TURN_TIME: 20000,
+    playerCards: []
   });
   const roomRef = useRef<Room | null>(null);
   const roomService = useRef(new RoomService());
@@ -39,26 +41,39 @@ const usePokerRoom = () => {
 
     const handleStateChange = (state: ColyseusState) => {
       console.log("State changed:", state);
-      setGameState({
+      setGameState((prevState) => ({
+        players: new Map(state.players),
         seats: state.seats.map((seat) => ({
           index: seat.index,
           playerId: seat.playerId
         })),
-        players: new Map(state.players),
+        communityCards: state.communityCards.map((card) => ({
+          suit: card.suit,
+          rank: card.rank
+        })),
         currentTurn: state.currentTurn,
         gameStarted: state.gameStarted,
         pot: state.pot,
         currentBet: state.currentBet,
-        TURN_TIME: state.TURN_TIME
-      });
+        TURN_TIME: state.TURN_TIME,
+        // мои поля
+        playerCards: prevState.playerCards
+      }));
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const handleServerMessages = (message: any) => {
       console.log("Server message:", message);
     };
+    const handlePlayerCardsChange = (playerCards: CardType[]) => {
+      console.log("Player cards changed:", playerCards);
+      setGameState((prevState) => ({
+        ...prevState,
+        playerCards
+      }));
+    };
 
     room.onMessage("message", handleServerMessages);
-
+    room.onMessage("playerCards", handlePlayerCardsChange);
     room.onStateChange(handleStateChange);
     return () => {
       room.removeAllListeners();

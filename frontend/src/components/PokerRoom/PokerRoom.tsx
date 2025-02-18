@@ -58,6 +58,11 @@ const PokerRoom = () => {
               gameState.players.get(gameState.currentTurn) ===
               gameState.players.get(gameState.seats[idx]?.playerId)
             }
+            playerCards={
+              roomRef.current?.sessionId === gameState.seats[idx]?.playerId
+                ? gameState.playerCards
+                : []
+            }
           />
         ))}
         {gameState.gameStarted && (
@@ -69,6 +74,15 @@ const PokerRoom = () => {
               <p>
                 Current turn:{" "}
                 {gameState.players.get(gameState.currentTurn)?.name}
+              </p>
+              <p>
+                Cards:
+                {gameState.communityCards.map((card) => (
+                  <span key={`${card.suit}${card.rank}`}>
+                    {card.rank}
+                    {card.suit}
+                  </span>
+                ))}
               </p>
             </div>
           </div>
