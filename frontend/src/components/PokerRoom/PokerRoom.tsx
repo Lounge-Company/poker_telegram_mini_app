@@ -3,32 +3,21 @@ import Seat from "./Seat";
 
 import PokerActions from "./PokerActions";
 import usePokerRoom from "src/hooks/usePokerRoom";
-import { useEffect, useState } from "react";
-import { SeatType } from "src/types/game";
+import { useState } from "react";
 import JoinModal from "./JoinModal";
-import {
-  getPlayerInfo,
-  positions,
-  rotateArray
-} from "src/services/funcService";
+import { getPlayerInfo } from "src/services/funcService";
 import GameInfo from "./GameInfo";
+import { useRotatedPositions } from "src/hooks/useRotatedPositions";
 
 const PokerRoom = () => {
   const { gameState, roomRef } = usePokerRoom();
-  const [rotatedPositions, setRotatedPositions] = useState(positions);
-  const [modalIsOpen, setModalIsOpen] = useState(false);
-  const [seatNumber, setSeatNumber] = useState<number | undefined>(undefined);
-
   const currentPlayer = gameState.players.get(gameState.currentTurn);
   const sessionId = roomRef.current?.sessionId;
 
-  useEffect(() => {
-    const playerSeatIndex = gameState.seats.findIndex(
-      (seat: SeatType) => seat.playerId === roomRef.current?.sessionId
-    );
-    if (playerSeatIndex !== -1)
-      setRotatedPositions(rotateArray(positions, 5 - playerSeatIndex));
-  }, [gameState.seats, roomRef]);
+  const [modalIsOpen, setModalIsOpen] = useState(false);
+  const [seatNumber, setSeatNumber] = useState<number | undefined>(undefined);
+
+  const rotatedPositions = useRotatedPositions(gameState, sessionId);
 
   const handleSeatClick = (seatNumber: number) => {
     setSeatNumber(seatNumber);
@@ -38,7 +27,7 @@ const PokerRoom = () => {
   const closeModal = () => {
     setModalIsOpen(false);
   };
-
+  if (!gameState || !sessionId) return <div>Loading...</div>;
   return (
     <div className={"flex flex-col h-full w-full"}>
       <div className="relative flex-grow flex items-center justify-center w-full min-h-0">
@@ -48,6 +37,7 @@ const PokerRoom = () => {
             className="w-auto h-auto max-w-full max-h-full object-contain"
           />
         </div>
+        <GameInfo gameState={gameState} currentPlayer={currentPlayer} />
         {rotatedPositions.map((position, idx) => {
           const { isOccupied, player, isTurn, playerCards } = getPlayerInfo(
             gameState.seats[idx],
@@ -70,7 +60,6 @@ const PokerRoom = () => {
             />
           );
         })}
-        <GameInfo gameState={gameState} currentPlayer={currentPlayer} />
       </div>
       <div className="h-20 w-full flex items-center justify-center">
         <PokerActions room={roomRef.current} />
