@@ -1,3 +1,5 @@
+import { ColyseusState, SeatType } from "src/types/game";
+
 export const positions = [
   { x: 50, y: 0, dx: -50, dy: 0, idx: 0 },
   { x: 0, y: 10, dx: 0, dy: 0, idx: 1 },
@@ -13,4 +15,24 @@ export const positions = [
 
 export const rotateArray = (arr: typeof positions, steps: number) => {
   return [...arr.slice(steps), ...arr.slice(0, steps)];
+};
+
+export const getPlayerInfo = (
+  seat: SeatType | undefined,
+  gameState: ColyseusState,
+  sessionId: string | undefined
+) => {
+  if (!seat)
+    return {
+      isOccupied: false,
+      player: undefined,
+      isTurn: false,
+      playerCards: []
+    };
+
+  const player = gameState.players.get(seat.playerId);
+  const isTurn = gameState.players.get(gameState.currentTurn) === player;
+  const playerCards = sessionId === seat.playerId ? gameState.playerCards : [];
+  const isOccupied = seat !== undefined && seat.playerId !== "";
+  return { isOccupied, player, isTurn, playerCards };
 };
