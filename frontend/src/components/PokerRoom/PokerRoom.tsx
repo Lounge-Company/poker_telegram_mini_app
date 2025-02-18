@@ -6,13 +6,21 @@ import usePokerRoom from "src/hooks/usePokerRoom";
 import { useEffect, useState } from "react";
 import { SeatType } from "src/types/game";
 import JoinModal from "./JoinModal";
-import { positions, rotateArray } from "src/services/funcService";
+import {
+  getPlayerInfo,
+  positions,
+  rotateArray
+} from "src/services/funcService";
+import GameInfo from "./GameInfo";
 
 const PokerRoom = () => {
   const { gameState, roomRef } = usePokerRoom();
   const [rotatedPositions, setRotatedPositions] = useState(positions);
   const [modalIsOpen, setModalIsOpen] = useState(false);
   const [seatNumber, setSeatNumber] = useState<number | undefined>(undefined);
+
+  const currentPlayer = gameState.players.get(gameState.currentTurn);
+  const sessionId = roomRef.current?.sessionId;
 
   useEffect(() => {
     const playerSeatIndex = gameState.seats.findIndex(
@@ -24,7 +32,7 @@ const PokerRoom = () => {
 
   const handleSeatClick = (seatNumber: number) => {
     setSeatNumber(seatNumber);
-    setModalIsOpen(!modalIsOpen);
+    setModalIsOpen((prev) => !prev);
   };
 
   const closeModal = () => {
@@ -40,53 +48,29 @@ const PokerRoom = () => {
             className="w-auto h-auto max-w-full max-h-full object-contain"
           />
         </div>
-        {rotatedPositions.map((position, idx) => (
-          <Seat
-            key={idx}
-            x={position.x}
-            y={position.y}
-            dx={position.dx}
-            dy={position.dy}
-            num={idx}
-            onClick={handleSeatClick}
-            isOccupied={
-              gameState.seats[idx] !== undefined &&
-              gameState.seats[idx].playerId !== ""
-            }
-            player={gameState.players.get(gameState.seats[idx]?.playerId)}
-            turn={
-              gameState.players.get(gameState.currentTurn) ===
-              gameState.players.get(gameState.seats[idx]?.playerId)
-            }
-            playerCards={
-              roomRef.current?.sessionId === gameState.seats[idx]?.playerId
-                ? gameState.playerCards
-                : []
-            }
-          />
-        ))}
-        {gameState.gameStarted && (
-          <div className="absolute top-0 left-0 w-full h-full flex items-center justify-center">
-            <div className="bg-black bg-opacity-50 text-white p-4 rounded-lg">
-              <p>Game Started</p>
-              <p>Bank: {gameState.pot}</p>
-              <p>Turn Time: {gameState.TURN_TIME}</p>
-              <p>
-                Current turn:{" "}
-                {gameState.players.get(gameState.currentTurn)?.name}
-              </p>
-              <p>
-                Cards:
-                {gameState.communityCards.map((card) => (
-                  <span key={`${card.suit}${card.rank}`}>
-                    {card.rank}
-                    {card.suit}
-                  </span>
-                ))}
-              </p>
-            </div>
-          </div>
-        )}
+        {rotatedPositions.map((position, idx) => {
+          const { isOccupied, player, isTurn, playerCards } = getPlayerInfo(
+            gameState.seats[idx],
+            gameState,
+            sessionId
+          );
+          return (
+            <Seat
+              key={idx}
+              x={position.x}
+              y={position.y}
+              dx={position.dx}
+              dy={position.dy}
+              num={idx}
+              onClick={handleSeatClick}
+              isOccupied={isOccupied}
+              player={player}
+              turn={isTurn}
+              playerCards={playerCards}
+            />
+          );
+        })}
+        <GameInfo gameState={gameState} currentPlayer={currentPlayer} />
       </div>
       <div className="h-20 w-full flex items-center justify-center">
         <PokerActions room={roomRef.current} />
