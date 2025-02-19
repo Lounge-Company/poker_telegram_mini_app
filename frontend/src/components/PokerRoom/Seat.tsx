@@ -1,4 +1,5 @@
-import { PlayerState } from "src/types/game";
+import { CardType, PlayerState } from "src/types/game";
+import CardImage from "./CardImage";
 
 interface SeatProps {
   x: number;
@@ -10,6 +11,7 @@ interface SeatProps {
   isOccupied?: boolean;
   player?: PlayerState;
   turn?: boolean;
+  playerCards?: CardType[];
 }
 
 const Seat = ({
@@ -21,7 +23,8 @@ const Seat = ({
   onClick,
   isOccupied,
   player,
-  turn
+  turn,
+  playerCards
 }: SeatProps) => {
   if (!isOccupied) {
     return (
@@ -60,6 +63,24 @@ const Seat = ({
         >
           {player?.name}
           <div className="absolute top-0 right-2">{player?.chips}</div>
+          {playerCards && (
+            <div className="absolute bottom-15 right-0 flex space-x-1">
+              {playerCards.map((card) => (
+                // <span
+                //   key={`${card.suit}${card.rank}`}
+                //   className="px-1 py-0.5 bg-white text-black rounded"
+                // >
+
+                //   {card.rank} {card.suit}
+                // </span>
+                <CardImage
+                  key={`${card.suit}${card.rank}`}
+                  suit={card.suit}
+                  rank={card.rank}
+                />
+              ))}
+            </div>
+          )}
         </div>
       </div>
     );
