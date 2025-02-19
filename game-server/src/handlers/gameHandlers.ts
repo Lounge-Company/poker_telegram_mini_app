@@ -1,20 +1,20 @@
-import { Room, Client } from "colyseus";
-import { GameState } from "../rooms/schema/GameState";
-import { TurnValidator } from "../midleware/TurnValidator";
-import { ActionService } from "../services/actionService";
-import { ClientService } from "../services/clientService";
+import { Room, Client } from 'colyseus'
+import { GameState } from '../rooms/schema/GameState'
+import { TurnValidator } from '../utils/game/TurnValidator'
+import { ActionService } from '../services/actionService'
+import { ClientService } from '../services/clientService'
 import {
   registerHandlers,
-  onMessage
-} from "../utils/decorators/registerHandler.decorator";
+  onMessage,
+} from '../utils/decorators/registerHandler.decorator'
 
 export class GameHandlers {
-  actionService: ActionService;
-  clientService: ClientService;
+  actionService: ActionService
+  clientService: ClientService
   constructor(private room: Room, private state: GameState) {
-    this.actionService = new ActionService(state);
-    this.clientService = new ClientService();
-    registerHandlers(this, this.room);
+    this.actionService = new ActionService(state)
+    this.clientService = new ClientService()
+    registerHandlers(this, this.room)
   }
 
   /**
@@ -24,11 +24,12 @@ export class GameHandlers {
    * // Client side
    * room.send("check");
    */
-  @onMessage("check")
+  @onMessage('check')
   handlePlayerCheck(client: Client) {
-    const success = this.actionService.check(client.sessionId);
-    if (!success) return;
-    this.clientService.broadcastPlayerCheck(this.room, client.sessionId);
+    if (!TurnValidator(this.state, client.sessionId)) return
+    const success = this.actionService.check(client.sessionId)
+    if (!success) return
+    this.clientService.broadcastPlayerCheck(this.room, client.sessionId)
   }
 
   /**
@@ -38,12 +39,13 @@ export class GameHandlers {
    * // Client side
    * room.send("call");
    */
-  @onMessage("call")
+  @onMessage('call')
   handlePlayerCall(client: Client) {
-    console.log("handlePlayerCall :", client.sessionId);
-    const success = this.actionService.call(client.sessionId);
-    if (!success) return;
-    this.clientService.broadcastPlayerCall(this.room, client.sessionId);
+    if (!TurnValidator(this.state, client.sessionId)) return
+    console.log('handlePlayerCall :', client.sessionId)
+    const success = this.actionService.call(client.sessionId)
+    if (!success) return
+    this.clientService.broadcastPlayerCall(this.room, client.sessionId)
   }
 
   /**
@@ -53,12 +55,13 @@ export class GameHandlers {
    * // Client side
    * room.send("fold");
    */
-  @onMessage("fold")
+  @onMessage('fold')
   handlePlayerFold(client: Client) {
-    console.log("handlePlayerFold :", client.sessionId);
-    const success = this.actionService.fold(client.sessionId);
-    if (!success) return;
-    this.clientService.broadcastPlayerFold(this.room, client.sessionId);
+    if (!TurnValidator(this.state, client.sessionId)) return
+    console.log('handlePlayerFold :', client.sessionId)
+    const success = this.actionService.fold(client.sessionId)
+    if (!success) return
+    this.clientService.broadcastPlayerFold(this.room, client.sessionId)
   }
 
   /**
@@ -70,8 +73,9 @@ export class GameHandlers {
    * // Client side
    * room.send("bet", amount);
    */
-  @onMessage("bet")
+  @onMessage('bet')
   handlePlayerBet(client: Client, amount: number) {
+    if (!TurnValidator(this.state, client.sessionId)) return
     if (isNaN(amount)) return
     console.log('handlePlayerBet :', client.sessionId, amount)
     const success = this.actionService.bet(client.sessionId, amount)
