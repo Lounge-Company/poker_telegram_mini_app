@@ -13,7 +13,7 @@ export class RoundManager {
   }
   shouldContinueRounds(): boolean {
     const activePlayers = Array.from(this.state.players.values()).filter(
-      (player) => !player.hasFolded
+      (player) => !player.hasFolded && !player.isAllIn
     )
     if (activePlayers.length < this.state.MIN_PLAYERS) {
       return false
@@ -26,22 +26,22 @@ export class RoundManager {
     this.state.currentTurn = this.turnManager.getStartingPlayer()
     console.log('set current turn :', this.state.currentTurn)
   }
-  nextRound(round: RoundType | undefined) {
+  switchRound(round: RoundType | undefined) {
     switch (this.state.gamePhase) {
       case RoundType.PREFLOP:
         this.state.gamePhase = round | RoundType.FLOP
         break
       case RoundType.FLOP:
-        this.state.gamePhase = RoundType.TURN
+        this.state.gamePhase = round | RoundType.TURN
         break
       case RoundType.TURN:
-        this.state.gamePhase = RoundType.RIVER
+        this.state.gamePhase = round | RoundType.RIVER
         break
       case RoundType.RIVER:
-        this.state.gamePhase = RoundType.SHOWDOWN
+        this.state.gamePhase = round | RoundType.SHOWDOWN
         break
       case RoundType.SHOWDOWN:
-        this.state.gamePhase = RoundType.PREFLOP
+        this.state.gamePhase = round | RoundType.PREFLOP
         break
     }
   }

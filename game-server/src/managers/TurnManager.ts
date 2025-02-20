@@ -29,17 +29,7 @@ export class TurnManager {
     return true
   }
 
-  private isPlayerEligibleForTurn(playerId: string): boolean {
-    const player = this.state.players.get(playerId)
-    return playerId && !player?.hasFolded && !player?.isAllIn && !player?.acted
-  }
-
   getNextTurn(): string | undefined {
-    // if no active players, return undefined
-    // if (!this.hasActivePlayers()) {
-    //   return undefined
-    // }
-
     const currentSeatIndex = this.state.seats.findIndex(
       (seat) => seat.playerId === this.state.currentTurn
     )
