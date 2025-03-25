@@ -7,7 +7,7 @@ export class BetManager {
   constructor(state: GameState) {
     this.state = state
   }
-
+  initializeBlinds() {}
   public allBetsEqual(): boolean {
     let targetBet = this.state.currentBet
 

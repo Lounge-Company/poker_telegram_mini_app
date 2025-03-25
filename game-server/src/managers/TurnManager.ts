@@ -29,7 +29,7 @@ export class TurnManager {
     return true
   }
 
-  getNextTurn(): string | undefined {
+  getNextPlayerTurn(): string | undefined {
     const currentSeatIndex = this.state.seats.findIndex(
       (seat) => seat.playerId === this.state.currentTurn
     )
@@ -50,7 +50,7 @@ export class TurnManager {
   }
   public async waitForPlayerAction(room: any, player: PlayerState): Promise<void> {
     return new Promise((resolve) => {
-      this.clientService.broadcastTurn(room, player.id)
+      this.clientService.broadcastTurn(player.id)
 
       const timer = setTimeout(() => {
         if (!player.acted) {
@@ -62,6 +62,7 @@ export class TurnManager {
 
       const checkInterval = setInterval(() => {
         if (player.acted) {
+          console.log('player acted')
           clearTimeout(timer)
           clearInterval(checkInterval)
           resolve()

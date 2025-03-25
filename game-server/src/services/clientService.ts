@@ -1,40 +1,73 @@
 import { Card } from '../rooms/schema/Card'
 import { MessageService } from './messageService'
 export class ClientService {
+  private static instance: ClientService
   messageService: MessageService
+  private room: any
   constructor() {
     this.messageService = new MessageService()
   }
-  sendMessage(client: any, message: string) {
+  static getInstance(): ClientService {
+    if (!ClientService.instance) {
+      ClientService.instance = new ClientService()
+    }
+    return ClientService.instance
+  }
+  setRoom(room: any) {
+    this.room = room
+  }
+
+  getClientById(playerId: string) {
+    return this.room.clients.find(
+      (c: { sessionId: string }) => c.sessionId === playerId
+    )
+  }
+
+  sendMessage(playerId: string, message: string) {
+    const client = this.getClientById(playerId)
     client.send('message', message)
   }
-  sendSystemMessage(client: any, message: string) {
+  sendSystemMessage(playerId: string, message: string) {
+    const client = this.getClientById(playerId)
     const systemMessage = this.messageService.createSystemMessage(message)
     client.send('message', systemMessage)
   }
-  broadcastMessage(room: any, message: string, player: any) {
+  broadcastMessage(message: string, player: any) {
     const broadcastMessage = this.messageService.createChatMessage(player, message)
-    room.broadcast('message', broadcastMessage)
+    this.room.broadcast('message', broadcastMessage)
   }
-  broadcastSystemMessage(room: any, message: string) {
+  broadcastSystemMessage(message: string) {
     const broadcastMessage = this.messageService.createSystemMessage(message)
-    room.broadcast('message', broadcastMessage)
+    this.room.broadcast('message', broadcastMessage)
   }
-  sendPlayerCards(client: any, cards: Card[]) {
-    client.send('playerCards', cards)
+  /**
+   * send player cards to client
+   *
+   * @example
+   * // Client side
+   * this.room.onMessage('playerCards', (cards) => {
+   *  console.log('Received cards:', cards)
+   *  // display player cards to client
+   * })
+   */
+  sendPlayerCards(playerId: string, cards: Card[]) {
+    const client = this.getClientById(playerId)
+    if (client) {
+      client.send('playerCards', cards)
+    }
   }
   /**
    * broadcasting cards to all clients
    *
    * @example
    * // Client side
-   * this.room.onMessage('playerCards', (cards) => {
+   * this.room.onMessage('communityCards', (cards) => {
    *  console.log('Received cards:', cards)
-   *   this.ui.displayCards(cards)
+   *   // display community cards to clients
    * })
    */
-  broadcastCommunityCards(room: any, cards: Card[]) {
-    room.broadcast('communityCards', cards)
+  broadcastCommunityCards(cards: Card[]) {
+    this.room.broadcast('communityCards', cards)
   }
   /**
    * broadcasting turn to all clients
@@ -43,11 +76,12 @@ export class ClientService {
    * // Client side
    *this.room.onMessage('turn', (playerId) => {
    *  console.log('turn', playerId)
+   * // display turn to clients
    * })
    */
-  broadcastTurn(room: any, playerId: string) {
+  broadcastTurn(playerId: string) {
     console.log('broadcastTurn', playerId)
-    room.broadcast('turn', playerId)
+    this.room.broadcast('turn', playerId)
   }
   /**
    * Broadcasts a player's bet to all clients in the room.
@@ -63,25 +97,25 @@ export class ClientService {
    * })
    */
 
-  broadcastPlayerBet(room: any, playerId: string, bet: number) {
-    room.broadcast('playerBet', { playerId, bet })
+  broadcastPlayerBet(playerId: string, bet: number) {
+    this.room.broadcast('playerBet', { playerId, bet })
   }
-  broadcastPlayerCheck(room: any, playerId: string) {
-    room.broadcast('playerCheck', playerId)
+  broadcastPlayerCheck(playerId: string) {
+    this.room.broadcast('playerCheck', playerId)
   }
-  broadcastPlayerCall(room: any, playerId: string) {
-    room.broadcast('playerCall', playerId)
+  broadcastPlayerCall(playerId: string) {
+    this.room.broadcast('playerCall', playerId)
   }
-  broadcastPlayerFold(room: any, playerId: string) {
-    room.broadcast('playerFold', playerId)
+  broadcastPlayerFold(playerId: string) {
+    this.room.broadcast('playerFold', playerId)
   }
-  broadcastPlayerRaise(room: any, playerId: string, amount: number) {
-    room.broadcast('playerRaise', { playerId, amount })
+  broadcastPlayerRaise(playerId: string, amount: number) {
+    this.room.broadcast('playerRaise', { playerId, amount })
   }
-  broadcastPlayerAllIn(room: any, playerId: string) {
-    room.broadcast('playerAllIn', playerId)
+  broadcastPlayerAllIn(playerId: string) {
+    this.room.broadcast('playerAllIn', playerId)
   }
-  broadcastPlayerWin(room: any, playerId: string) {
-    room.broadcast('playerWin', playerId)
+  broadcastPlayerWin(playerId: string) {
+    this.room.broadcast('playerWin', playerId)
   }
 }

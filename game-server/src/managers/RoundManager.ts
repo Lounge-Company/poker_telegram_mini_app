@@ -1,3 +1,4 @@
+import { PlayerRepository } from '../repositories/player.repository'
 import { GameState } from '../rooms/schema/GameState'
 import { RoundType } from '../types/GameTypes'
 import { TurnManager } from './TurnManager'
@@ -12,10 +13,10 @@ export class RoundManager {
     return this.state.gamePhase
   }
   shouldContinueRounds(): boolean {
-    const activePlayers = Array.from(this.state.players.values()).filter(
-      (player) => !player.hasFolded && !player.isAllIn
-    )
-    if (activePlayers.length < this.state.MIN_PLAYERS) {
+    if (this.state.activePlayers < this.state.MIN_PLAYERS) {
+      return false
+    }
+    if (this.state.allInPlayersCount === this.state.players.size) {
       return false
     }
     return
@@ -23,8 +24,8 @@ export class RoundManager {
   resetRound() {
     this.state.gamePhase = RoundType.PREFLOP
     this.state.currentBet = 0
+    this.state.activePlayers = this.state.players.size
     this.state.currentTurn = this.turnManager.getStartingPlayer()
-    console.log('set current turn :', this.state.currentTurn)
   }
   switchRound(round: RoundType | undefined) {
     switch (this.state.gamePhase) {

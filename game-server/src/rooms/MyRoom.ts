@@ -18,26 +18,18 @@ export class MyRoom extends Room<GameState> {
     this.setState(new GameState())
     this.setSeatReservationTime(60)
     this.RoomManager = new RoomManager(this.state)
-    this.GameLoop = new GameLoop(this, this.state)
     this.RoomHandlers = new RoomHandlers(this, this.RoomManager)
     this.GameHandlers = new GameHandlers(this, this.state)
-    this.ClientService = new ClientService()
-
-    // this.RoomHandlers.registerHandlers()
-    // this.GameHandlers.registerHandlers()
+    this.ClientService = ClientService.getInstance()
+    this.ClientService.setRoom(this)
+    this.GameLoop = new GameLoop(this, this.ClientService)
   }
-
   onJoin(client: Client) {
     // refactor this
     const newPlayer = new PlayerState()
     newPlayer.id = client.sessionId
     newPlayer.name = `Player ${Math.floor(Math.random() * 1000)}`
     this.state.spectators.set(client.sessionId, newPlayer)
-
-    // this.ClientService.broadcastSystemMessage(
-    //   this,
-    //   `Player ${client.sessionId} joined the room`
-    // )
   }
   onLeave(client: Client) {
     // refactor this
@@ -50,7 +42,6 @@ export class MyRoom extends Room<GameState> {
     const spectator = this.state.spectators.get(client.sessionId)
     if (spectator) this.state.spectators.delete(client.sessionId)
     this.ClientService.broadcastSystemMessage(
-      this,
       `Player ${client.sessionId} left the game`
     )
   }

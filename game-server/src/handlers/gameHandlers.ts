@@ -6,13 +6,13 @@ import {
   registerHandlers,
   onMessage,
 } from '../utils/decorators/registerHandler.decorator'
-import { GameEventEmitter } from '../events/gameEvents'
+import { GameEventEmitter } from '../events/gameEventEmitter'
 
 export class GameHandlers {
   eventEmitter: GameEventEmitter
   clientService: ClientService
   constructor(private room: Room, private state: GameState) {
-    this.clientService = new ClientService()
+    this.clientService = ClientService.getInstance()
     this.eventEmitter = GameEventEmitter.getInstance()
     registerHandlers(this, this.room)
   }
@@ -28,7 +28,7 @@ export class GameHandlers {
   handlePlayerCheck(client: Client) {
     if (!TurnValidator(this.state, client.sessionId)) return
     this.eventEmitter.emit('playerCheck', client.sessionId)
-    this.clientService.broadcastPlayerCheck(this.room, client.sessionId)
+    this.clientService.broadcastPlayerCheck(client.sessionId)
   }
 
   /**
@@ -43,7 +43,7 @@ export class GameHandlers {
     if (!TurnValidator(this.state, client.sessionId)) return
     console.log('handlePlayerCall :', client.sessionId)
     this.eventEmitter.emit('playerCall', client.sessionId)
-    this.clientService.broadcastPlayerCall(this.room, client.sessionId)
+    this.clientService.broadcastPlayerCall(client.sessionId)
   }
 
   /**
@@ -58,7 +58,7 @@ export class GameHandlers {
     if (!TurnValidator(this.state, client.sessionId)) return
     console.log('handlePlayerFold :', client.sessionId)
     this.eventEmitter.emit('playerFold', client.sessionId)
-    this.clientService.broadcastPlayerFold(this.room, client.sessionId)
+    this.clientService.broadcastPlayerFold(client.sessionId)
   }
 
   /**
@@ -76,6 +76,6 @@ export class GameHandlers {
     if (isNaN(amount)) return
     console.log('handlePlayerBet :', client.sessionId, amount)
     this.eventEmitter.emit('playerBet', client.sessionId, amount)
-    this.clientService.broadcastPlayerBet(this.room, client.sessionId, amount)
+    this.clientService.broadcastPlayerBet(client.sessionId, amount)
   }
 }

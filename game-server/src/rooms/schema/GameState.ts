@@ -14,10 +14,12 @@ export class GameState extends Schema {
   @type('string') dealerId: PlayerState['id']
   @type('boolean') gameStarted = false
   @type('number') activePlayers = 0
+  @type('number') allInPlayersCount = 0
   @type('number') pot = 0
   @type('number') currentBet = 0
   @type('number') gamePhase: RoundType = RoundType.PREFLOP // preFlop, flop, turn, river
   @type('number') TURN_TIME = 5000
+  @type('number') GAME_LOOP_DELAY = 100000
   @type('number') MAX_SEATS = 10
   @type('number') MIN_PLAYERS = 2
 }

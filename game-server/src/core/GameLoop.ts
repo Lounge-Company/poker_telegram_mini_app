@@ -7,7 +7,13 @@ import { MyRoom } from '../rooms/MyRoom'
 import { RoundManager } from '../managers/RoundManager'
 import { PlayerManager } from '../managers/PlayerManager'
 import { PlayerState } from '../rooms/schema/PlayerState'
-import { GameEventEmitter } from '../events/gameEvents'
+import { GameEventEmitter } from '../events/gameEventEmitter'
+import { PlayerRepository } from '../repositories/player.repository'
+import { CardDealer } from '../managers/CardDealer'
+import { ClientService } from '../services/clientService'
+import { EventSubscriber } from '../events/eventSubscriber'
+import { createGameEventHandlers } from '../events/gameEventHandlers'
+import { GameEventTypes } from '../types/GameEventsTypes'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
@@ -21,32 +27,43 @@ export class GameLoop {
   state: GameState
   room: MyRoom
   eventEmitter: GameEventEmitter
-  constructor(room: MyRoom, state: GameState) {
-    this.state = state
+  cardDealer: CardDealer
+  eventSubscriber: EventSubscriber
+  eventHandlers: ReturnType<typeof createGameEventHandlers>
+
+  constructor(room: MyRoom, clientService: ClientService) {
     this.room = room
-    this.turnManager = new TurnManager(state)
-    this.roundManager = new RoundManager(state)
-    this.gameManager = new GameManager(room, state)
-    this.playerManager = new PlayerManager(state)
+    this.state = this.room.state
+    this.turnManager = new TurnManager(this.state)
+    this.roundManager = new RoundManager(this.state)
     this.deckManager = new DeckManager()
-
+    this.cardDealer = new CardDealer(this.deckManager, clientService)
     this.eventEmitter = GameEventEmitter.getInstance()
-    this.subscribeToEvents()
-  }
+    this.eventSubscriber = new EventSubscriber(this.eventEmitter)
+    const playerRepository = new PlayerRepository(this.state.players)
+    this.gameManager = new GameManager(
+      () => this.state.players,
+      (count: number) => (this.state.activePlayers = count),
+      (status: boolean) => (this.state.gameStarted = status),
+      (turn: string) => (this.state.currentTurn = turn),
+      this.turnManager
+    )
+    this.playerManager = new PlayerManager(
+      playerRepository,
+      () => this.state.currentBet,
+      (amount: number) => (this.state.pot += amount),
+      (amount: number) => (this.state.currentBet = amount),
+      (count: number) => (this.state.activePlayers = count),
+      () => this.state.activePlayers
+    )
 
-  private subscribeToEvents() {
-    this.eventEmitter.on('gameStart', () => this.startGame())
-    this.eventEmitter.on('gameEnd', () => this.stopGame())
-  }
-
-  startGame() {
-    this.state.gameStarted = true
-    this.state.currentTurn = this.turnManager.getStartingPlayer()
-    this.gameLoop()
-  }
-
-  stopGame() {
-    this.state.gameStarted = false
+    this.eventHandlers = createGameEventHandlers(
+      this.gameManager,
+      this.playerManager
+    )
+    Object.entries(this.eventHandlers).forEach(([event, handler]) => {
+      this.eventSubscriber.subscribe(event as keyof GameEventTypes, handler)
+    })
   }
 
   async gameLoop() {
@@ -60,7 +77,10 @@ export class GameLoop {
       this.deck = this.deckManager.createDeck()
 
       // // deal cards
-      this.playerCards = this.gameManager.dealCards(this.deck)
+      this.playerCards = this.cardDealer.dealPlayerCards(
+        this.deck,
+        this.state.players
+      )
 
       // start betting round
 
@@ -71,7 +91,7 @@ export class GameLoop {
 
       this.playerManager.resetPlayers()
       this.roundManager.resetRound()
-      await new Promise((resolve) => setTimeout(resolve, this.gameloopDelay))
+      await new Promise((resolve) => setTimeout(resolve, this.state.GAME_LOOP_DELAY))
     }
     console.log('Game loop stopped.')
   }
@@ -80,19 +100,28 @@ export class GameLoop {
       await this.bettingRound()
       this.roundManager.switchRound(undefined)
     }
+    if (this.state.activePlayers < this.state.MIN_PLAYERS) {
+      return
+    }
+    if (this.state.allInPlayersCount === this.state.players.size) {
+      return
+    }
   }
-  private async bettingRound(): Promise<boolean> {
+  async bettingRound(): Promise<boolean> {
     while (!this.turnManager.allPlayersActed()) {
+      console.log('test1')
+      console.log('current turn : ', this.state.currentTurn)
+
       let currentPlayer: PlayerState = this.state.players.get(this.state.currentTurn)
       if (!currentPlayer) {
         return
       }
-      if (this.state.activePlayers == 1) {
+      if (this.state.activePlayers < this.state.MIN_PLAYERS) {
         return
       }
-
+      console.log('test')
       await this.turnManager.waitForPlayerAction(this.room, currentPlayer)
-      const nextTurn = this.turnManager.getNextTurn()
+      const nextTurn = this.turnManager.getNextPlayerTurn()
 
       if (!nextTurn) {
         return
