@@ -2,17 +2,15 @@ import { GameState } from '../rooms/schema/GameState'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
 export class TurnManager {
+  private state: GameState
+  private СlientService: ClientService
+
+  constructor(state: GameState, private clientService: ClientService) {
+    this.state = state
+  }
   getCurrentTurn(): string {
     return this.state.currentTurn
   }
-  private state: GameState
-  private clientService: ClientService
-
-  constructor(state: GameState) {
-    this.state = state
-    this.clientService = new ClientService()
-  }
-
   getStartingPlayer(): string {
     for (let i = 0; i < this.state.seats.length; i++) {
       if (this.state.seats[i].playerId) {
@@ -47,27 +45,5 @@ export class TurnManager {
     }
 
     return undefined
-  }
-  public async waitForPlayerAction(room: any, player: PlayerState): Promise<void> {
-    return new Promise((resolve) => {
-      this.clientService.broadcastTurn(player.id)
-
-      const timer = setTimeout(() => {
-        if (!player.acted) {
-          player.hasFolded = true
-          player.acted = true
-          resolve()
-        }
-      }, this.state.TURN_TIME)
-
-      const checkInterval = setInterval(() => {
-        if (player.acted) {
-          console.log('player acted')
-          clearTimeout(timer)
-          clearInterval(checkInterval)
-          resolve()
-        }
-      }, 100)
-    })
   }
 }

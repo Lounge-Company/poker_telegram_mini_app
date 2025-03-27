@@ -9,11 +9,12 @@ import { PlayerManager } from '../managers/PlayerManager'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { GameEventEmitter } from '../events/gameEventEmitter'
 import { PlayerRepository } from '../repositories/player.repository'
-import { CardDealer } from '../managers/CardDealer'
+import { CardDealer } from '../utils/CardDealer'
 import { ClientService } from '../services/clientService'
 import { EventSubscriber } from '../events/eventSubscriber'
 import { createGameEventHandlers } from '../events/gameEventHandlers'
 import { GameEventTypes } from '../types/GameEventsTypes'
+import { PlayerActionService } from '../services/PlayerActionService'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
@@ -30,14 +31,16 @@ export class GameLoop {
   cardDealer: CardDealer
   eventSubscriber: EventSubscriber
   eventHandlers: ReturnType<typeof createGameEventHandlers>
+  PlayerActionService: PlayerActionService
 
-  constructor(room: MyRoom, clientService: ClientService) {
+  constructor(room: MyRoom, private clientService: ClientService) {
     this.room = room
     this.state = this.room.state
-    this.turnManager = new TurnManager(this.state)
-    this.roundManager = new RoundManager(this.state)
     this.deckManager = new DeckManager()
-    this.cardDealer = new CardDealer(this.deckManager, clientService)
+    this.turnManager = new TurnManager(this.state, this.clientService)
+    this.roundManager = new RoundManager(this.state, this.turnManager)
+    this.cardDealer = new CardDealer(this.deckManager, this.clientService)
+
     this.eventEmitter = GameEventEmitter.getInstance()
     this.eventSubscriber = new EventSubscriber(this.eventEmitter)
     const playerRepository = new PlayerRepository(this.state.players)
@@ -46,7 +49,8 @@ export class GameLoop {
       (count: number) => (this.state.activePlayers = count),
       (status: boolean) => (this.state.gameStarted = status),
       (turn: string) => (this.state.currentTurn = turn),
-      this.turnManager
+      this.turnManager,
+      this.gameLoop.bind(this)
     )
     this.playerManager = new PlayerManager(
       playerRepository,
@@ -56,7 +60,10 @@ export class GameLoop {
       (count: number) => (this.state.activePlayers = count),
       () => this.state.activePlayers
     )
-
+    this.PlayerActionService = new PlayerActionService(
+      this.clientService,
+      this.playerManager
+    )
     this.eventHandlers = createGameEventHandlers(
       this.gameManager,
       this.playerManager
@@ -75,7 +82,7 @@ export class GameLoop {
 
       // create deck
       this.deck = this.deckManager.createDeck()
-
+      // console.log('deck :', this.deck)
       // // deal cards
       this.playerCards = this.cardDealer.dealPlayerCards(
         this.deck,
@@ -90,7 +97,9 @@ export class GameLoop {
       // check if game is over
 
       this.playerManager.resetPlayers()
+      console.log('players reseted')
       this.roundManager.resetRound()
+      console.log('round reseted')
       await new Promise((resolve) => setTimeout(resolve, this.state.GAME_LOOP_DELAY))
     }
     console.log('Game loop stopped.')
@@ -111,7 +120,7 @@ export class GameLoop {
     while (!this.turnManager.allPlayersActed()) {
       console.log('test1')
       console.log('current turn : ', this.state.currentTurn)
-
+      console.log('active players : ', this.state.activePlayers)
       let currentPlayer: PlayerState = this.state.players.get(this.state.currentTurn)
       if (!currentPlayer) {
         return
@@ -120,7 +129,7 @@ export class GameLoop {
         return
       }
       console.log('test')
-      await this.turnManager.waitForPlayerAction(this.room, currentPlayer)
+      await this.PlayerActionService.waitForPlayerAction(this.state, currentPlayer)
       const nextTurn = this.turnManager.getNextPlayerTurn()
 
       if (!nextTurn) {

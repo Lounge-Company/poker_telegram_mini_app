@@ -4,10 +4,8 @@ import { RoundType } from '../types/GameTypes'
 import { TurnManager } from './TurnManager'
 export class RoundManager {
   private state: GameState
-  private turnManager: TurnManager
-  constructor(state: GameState) {
+  constructor(state: GameState, private turnManager: TurnManager) {
     this.state = state
-    this.turnManager = new TurnManager(state)
   }
   getCurrentRound() {
     return this.state.gamePhase

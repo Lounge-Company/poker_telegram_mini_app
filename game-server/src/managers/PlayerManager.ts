@@ -15,7 +15,7 @@ export class PlayerManager {
     if (player && this.getCurrentBet() === 0) {
       console.log(`Player ${player.name} checked.`)
       player.acted = true
-      this.playerRepository.updatePlayer(player)
+      // this.playerRepository.updatePlayer(player)
     }
   }
 
@@ -51,9 +51,10 @@ export class PlayerManager {
 
   resetPlayers() {
     this.playerRepository.getAllPlayers().forEach((player) => {
+      console.log('resetting player', player)
       player.acted = false
       player.hasFolded = false
-      this.playerRepository.updatePlayer(player)
+      // this.playerRepository.updatePlayer(player)
     })
   }
   updateActivePlayers() {
@@ -61,5 +62,13 @@ export class PlayerManager {
     if (newCount >= 0) {
       this.setActivePlayers(newCount)
     }
+  }
+  public markPlayerAsFolded(playerId: string): void {
+    const player = this.playerRepository.getPlayer(playerId)
+    if (!player) return
+
+    player.hasFolded = true
+    player.acted = true
+    this.playerRepository.updatePlayer(player)
   }
 }

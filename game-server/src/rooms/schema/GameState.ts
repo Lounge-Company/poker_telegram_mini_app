@@ -19,7 +19,7 @@ export class GameState extends Schema {
   @type('number') currentBet = 0
   @type('number') gamePhase: RoundType = RoundType.PREFLOP // preFlop, flop, turn, river
   @type('number') TURN_TIME = 5000
-  @type('number') GAME_LOOP_DELAY = 100000
+  @type('number') GAME_LOOP_DELAY = 10000
   @type('number') MAX_SEATS = 10
   @type('number') MIN_PLAYERS = 2
 }

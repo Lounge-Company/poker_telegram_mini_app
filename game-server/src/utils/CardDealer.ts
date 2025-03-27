@@ -1,6 +1,8 @@
 import { Card } from '../rooms/schema/Card'
-import { DeckManager } from './DeckManager'
+import { DeckManager } from '../managers/DeckManager'
 import { ClientService } from '../services/clientService'
+import { PlayerState } from '../rooms/schema/PlayerState'
+import { MapSchema } from '@colyseus/schema'
 
 export class CardDealer {
   constructor(
@@ -8,18 +10,21 @@ export class CardDealer {
     private clientService: ClientService
   ) {}
 
-  dealPlayerCards(deck: Card[], players: Map<string, any>): Map<string, Card[]> {
+  dealPlayerCards(
+    deck: Card[],
+    players: MapSchema<PlayerState>
+  ): Map<string, Card[]> {
     const playerCards = new Map<string, Card[]>()
 
-    for (const [playerId, player] of players) {
+    for (const [id, player] of players) {
       const cards: Card[] = [
         this.deckManager.drawCard(deck),
         this.deckManager.drawCard(deck),
       ]
       if (player) {
-        this.clientService.sendPlayerCards(player, cards)
+        this.clientService.sendPlayerCards(id, cards)
       }
-      playerCards.set(playerId, cards)
+      playerCards.set(id, cards)
     }
 
     return playerCards

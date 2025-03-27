@@ -11,7 +11,7 @@ export class PlayerRepository implements IPlayerRepository {
   updatePlayer(player: PlayerState): void {
     const existingPlayer = this.players.get(player.id)
     if (!existingPlayer) {
-      this.players.set(player.id, player)
+      this.players.set(player.id, player.clone())
       return
     }
 
