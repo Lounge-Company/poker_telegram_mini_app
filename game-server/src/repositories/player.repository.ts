@@ -1,4 +1,4 @@
-import { IPlayerRepository } from '../interfaces/IPlayerRepository'
+import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
 import { PlayerState } from '../rooms/schema/PlayerState'
 
 export class PlayerRepository implements IPlayerRepository {
@@ -7,19 +7,7 @@ export class PlayerRepository implements IPlayerRepository {
   getPlayer(id: string): PlayerState | undefined {
     return this.players.get(id)
   }
-
-  updatePlayer(player: PlayerState): void {
-    const existingPlayer = this.players.get(player.id)
-    if (!existingPlayer) {
-      this.players.set(player.id, player.clone())
-      return
-    }
-
-    Object.assign(existingPlayer, player)
-    this.players.set(player.id, existingPlayer)
-  }
-
-  getAllPlayers(): PlayerState[] {
-    return Array.from(this.players.values())
+  getAllPlayers(): Map<string, PlayerState> {
+    return this.players
   }
 }

@@ -1,25 +1,31 @@
+import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
+import { ISeatRepository } from '../interfaces/repositories/ISeatRepository'
 import { GameState } from '../rooms/schema/GameState'
-import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
 export class TurnManager {
   private state: GameState
   private СlientService: ClientService
 
-  constructor(state: GameState, private clientService: ClientService) {
+  constructor(
+    state: GameState,
+    private clientService: ClientService,
+    private playerRepository: IPlayerRepository,
+    private seatRepository: ISeatRepository
+  ) {
     this.state = state
   }
   getCurrentTurn(): string {
     return this.state.currentTurn
   }
   getStartingPlayer(): string {
-    for (let i = 0; i < this.state.seats.length; i++) {
+    for (let i = 0; i < this.seatRepository.getAllSeats().length; i++) {
       if (this.state.seats[i].playerId) {
         return this.state.seats[i].playerId
       }
     }
   }
   public allPlayersActed(): boolean {
-    for (const player of this.state.players.values()) {
+    for (const player of this.playerRepository.getAllPlayers().values()) {
       if (!player.acted) {
         return false
       }

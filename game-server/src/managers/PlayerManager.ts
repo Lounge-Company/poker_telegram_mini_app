@@ -1,9 +1,11 @@
-import { IPlayerRepository } from '../interfaces/IPlayerRepository'
+import { IBetRepository } from '../interfaces/repositories/IBetRepository'
+import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
 import { PlayerState } from '../rooms/schema/PlayerState'
 
 export class PlayerManager {
   constructor(
     private playerRepository: IPlayerRepository,
+    private betRepository: IBetRepository,
     private getCurrentBet: () => number,
     private setPot: (amount: number) => void,
     private setCurrentBet: (amount: number) => void,
@@ -25,7 +27,7 @@ export class PlayerManager {
       player.chips -= this.getCurrentBet()
       this.setPot(player.chips)
       player.acted = true
-      this.playerRepository.updatePlayer(player)
+      // this.playerRepository.updatePlayer(player)
     }
   }
 
@@ -34,7 +36,7 @@ export class PlayerManager {
     if (player) {
       player.hasFolded = true
       player.acted = true
-      this.playerRepository.updatePlayer(player)
+      // this.playerRepository.updatePlayer(player)
       this.updateActivePlayers()
     }
   }
@@ -45,7 +47,7 @@ export class PlayerManager {
       this.setPot(amount)
       this.setCurrentBet(amount)
       player.acted = true
-      this.playerRepository.updatePlayer(player)
+      // this.playerRepository.updatePlayer(player)
     }
   }
 
@@ -69,6 +71,6 @@ export class PlayerManager {
 
     player.hasFolded = true
     player.acted = true
-    this.playerRepository.updatePlayer(player)
+    // this.playerRepository.updatePlayer(player)
   }
 }

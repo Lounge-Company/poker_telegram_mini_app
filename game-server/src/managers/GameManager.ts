@@ -6,14 +6,14 @@ export class GameManager {
     private setActivePlayers: (count: number) => void,
     private setGameStarted: (status: boolean) => void,
     private setCurrentTurn: (turn: string) => void,
-    private turnManager: TurnManager,
+    private getStartingPlayer: () => string,
     private gameLoop: () => Promise<void>
   ) {}
   async startGame() {
     console.log('Starting game...')
     this.setGameStarted(true)
     this.setActivePlayers(this.getPlayers().size)
-    this.setCurrentTurn(this.turnManager.getStartingPlayer())
+    this.setCurrentTurn(this.getStartingPlayer())
 
     await this.gameLoop()
   }
