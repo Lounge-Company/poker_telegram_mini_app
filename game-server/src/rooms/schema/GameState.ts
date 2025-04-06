@@ -22,4 +22,6 @@ export class GameState extends Schema {
   @type('number') GAME_LOOP_DELAY = 10000
   @type('number') MAX_SEATS = 10
   @type('number') MIN_PLAYERS = 2
+  @type('number') SMALL_BLIND = 1
+  @type('number') BIG_BLIND = 2
 }

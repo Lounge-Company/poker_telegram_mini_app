@@ -1,16 +1,36 @@
 import { GameState } from '../rooms/schema/GameState'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { IBetRepository } from '../interfaces/repositories/IBetRepository'
+import { PlayerManager } from './PlayerManager'
 
 export class BetManager {
   private state: GameState
 
   constructor(
+    private playerManager: PlayerManager,
     private betRepository: IBetRepository,
-    private getPlayers: () => Map<string, PlayerState>
+    private getPlayers: () => Map<string, PlayerState>,
+    private getBlinds: () => { SMALL: number; BIG: number }
   ) {}
 
-  initializeBlinds() {}
+  initializeBlinds() {
+    const BLINDS = this.getBlinds()
+
+    const blindPositions = this.playerManager.getBlindsPositions()
+
+    const smallBlindPlayer = this.getPlayers().get(blindPositions.smallBlind)
+    const bigBlindPlayer = this.getPlayers().get(blindPositions.bigBlind)
+
+    if (smallBlindPlayer) {
+      smallBlindPlayer.chips -= BLINDS.SMALL
+      smallBlindPlayer.currentBet = BLINDS.SMALL
+    }
+
+    if (bigBlindPlayer) {
+      bigBlindPlayer.chips -= BLINDS.BIG
+      bigBlindPlayer.currentBet = BLINDS.BIG
+    }
+  }
 
   public allBetsEqual(): boolean {
     let targetBet = this.betRepository.getCurrentBet()

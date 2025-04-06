@@ -3,6 +3,7 @@ import { DeckManager } from '../managers/DeckManager'
 import { ClientService } from '../services/clientService'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { MapSchema } from '@colyseus/schema'
+import { RoundType } from '../types/GameTypes'
 
 export class CardDealer {
   constructor(
@@ -42,5 +43,20 @@ export class CardDealer {
 
     this.clientService.broadcastCommunityCards(communityCards)
     return communityCards
+  }
+  dealRoundCards(deck: Card[], gamePhase: RoundType): void {
+    switch (gamePhase) {
+      case RoundType.FLOP:
+        this.dealCommunityCards(deck, 3)
+      case RoundType.TURN:
+        this.dealCommunityCards(deck, 1)
+      case RoundType.RIVER:
+        this.dealCommunityCards(deck, 1)
+    }
+  }
+  dealRemainingCommunityCards(deck: Card[], communityCards: Array<Card>): void {
+    if (communityCards.length < 5) {
+      this.dealCommunityCards(deck, 5 - communityCards.length)
+    }
   }
 }

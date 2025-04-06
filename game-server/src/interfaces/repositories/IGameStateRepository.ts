@@ -4,6 +4,7 @@ export interface IGameStateRepository {
   getGamePhase(): RoundType
   setGamePhase(phase: RoundType): void
   getActivePlayers(): number
+  setActivePlayers(count?: number): void
   getMinPlayers(): number
   getAllInPlayersCount(): number
   resetBets(): void

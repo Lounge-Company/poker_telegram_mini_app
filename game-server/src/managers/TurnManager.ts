@@ -2,6 +2,7 @@ import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
 import { ISeatRepository } from '../interfaces/repositories/ISeatRepository'
 import { GameState } from '../rooms/schema/GameState'
 import { ClientService } from '../services/clientService'
+
 export class TurnManager {
   private state: GameState
   private СlientService: ClientService
@@ -10,19 +11,19 @@ export class TurnManager {
     state: GameState,
     private clientService: ClientService,
     private playerRepository: IPlayerRepository,
-    private seatRepository: ISeatRepository
+    private seatRepository: ISeatRepository,
+    private getDealerId: () => string
   ) {
     this.state = state
   }
-  getCurrentTurn(): string {
-    return this.state.currentTurn
-  }
   getStartingPlayer(): string {
-    for (let i = 0; i < this.seatRepository.getAllSeats().length; i++) {
-      if (this.state.seats[i].playerId) {
-        return this.state.seats[i].playerId
-      }
-    }
+    const seats = this.seatRepository.getSeats()
+    const dealerId = this.getDealerId()
+    const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
+
+    const startingIndex = (dealerIndex + 3) % seats.length
+
+    return seats[startingIndex].playerId
   }
   public allPlayersActed(): boolean {
     for (const player of this.playerRepository.getAllPlayers().values()) {
@@ -51,5 +52,14 @@ export class TurnManager {
     }
 
     return undefined
+  }
+  moveDealerPosition(): void {
+    const dealerId = this.getDealerId()
+    const dealerIndex = this.state.seats.findIndex(
+      (seat) => seat.playerId === dealerId
+    )
+    const newDealerIndex = (dealerIndex + 1) % this.state.seats.length
+    const newDealerId = this.state.seats[newDealerIndex].playerId
+    this.state.dealerId = newDealerId
   }
 }

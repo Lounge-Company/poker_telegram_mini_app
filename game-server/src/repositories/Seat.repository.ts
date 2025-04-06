@@ -5,7 +5,7 @@ import { GameState } from '../rooms/schema/GameState'
 
 export class SeatRepository implements ISeatRepository {
   constructor(private state: GameState) {}
-  getAllSeats(): ArraySchema<Seat> {
+  getSeats(): ArraySchema<Seat> {
     return this.state.seats
   }
   getIndexOfPlayer(playerId: string): number {

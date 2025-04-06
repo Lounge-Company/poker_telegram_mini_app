@@ -6,4 +6,7 @@ export class TurnRepository implements ITurnRepository {
   getCurrentTurn(): string {
     return this.state.currentTurn
   }
+  setCurrentTurn(playerId: string): void {
+    this.state.currentTurn = playerId
+  }
 }

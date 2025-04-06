@@ -2,21 +2,21 @@ import { Card } from '../rooms/schema/Card'
 import { CARD_VALUES } from '../utils/game/CardUtils'
 
 export class DeckManager {
+  constructor(private deck: Card[]) {}
   createDeck(): Card[] {
     const { suits, ranks } = CARD_VALUES
 
-    let deck = []
     for (const suit of suits) {
       for (const rank of ranks) {
         const card = new Card()
         card.suit = suit
         card.rank = rank
-        deck.push(card)
+        this.deck.push(card)
       }
     }
 
-    this.shuffleDeck(deck)
-    return deck
+    this.shuffleDeck(this.deck)
+    return this.deck
   }
 
   private shuffleDeck(deck: Card[]) {
