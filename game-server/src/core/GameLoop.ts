@@ -20,39 +20,61 @@ import { BetManager } from '../managers/BetManager'
 import { BetRepository } from '../repositories/Bet.repository'
 import { SeatRepository } from '../repositories/Seat.repository'
 import { TurnRepository } from '../repositories/turn.repository'
+import { shouldContinueGame } from '../utils/game/shouldContinueGame'
+import { hasOnlyOneActivePlayer } from '../utils/game/hasOnlyOneActivePlayer'
+import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
+import { GameEvaluator } from '../utils/gameEvaluator'
 
 export class GameLoop {
   private playerCards: Map<string, Card[]> = new Map()
   private deck: Card[] = []
-  gameloopDelay: number = 0
+
+  state: GameState
+  room: MyRoom
+
+  // Core managers
   turnManager: TurnManager
   gameManager: GameManager
   deckManager: DeckManager
   roundManager: RoundManager
   playerManager: PlayerManager
-  state: GameState
-  room: MyRoom
-  eventEmitter: GameEventEmitter
-  cardDealer: CardDealer
-  eventSubscriber: EventSubscriber
-  eventHandlers: ReturnType<typeof createGameEventHandlers>
-  PlayerActionService: PlayerActionService
   betManager: BetManager
+
+  // Repositories
   gameStateRepository: GameStateRepository
   seatRepository: SeatRepository
   playerRepository: PlayerRepository
   betRepository: BetRepository
   turnRepository: TurnRepository
 
-  constructor(room: MyRoom, private clientService: ClientService) {
+  // Services
+  cardDealer: CardDealer
+  PlayerActionService: PlayerActionService
+  clientService: ClientService
+  gameEvaluator: GameEvaluator
+  // Events
+  eventEmitter: GameEventEmitter
+  eventSubscriber: EventSubscriber
+  eventHandlers: ReturnType<typeof createGameEventHandlers>
+
+  constructor(room: MyRoom, clientService: ClientService) {
     this.room = room
     this.state = this.room.state
-    this.deckManager = new DeckManager(this.deck)
+    this.clientService = clientService
+
+    this.initializeRepositories()
+    this.initializeManagers()
+    this.initializeServices()
+    this.initializeEvents()
+  }
+  private initializeRepositories() {
     this.gameStateRepository = new GameStateRepository(this.state)
     this.seatRepository = new SeatRepository(this.state)
     this.playerRepository = new PlayerRepository(this.state.players)
     this.betRepository = new BetRepository(this.state)
     this.turnRepository = new TurnRepository(this.state)
+  }
+  private initializeManagers() {
     this.turnManager = new TurnManager(
       this.state,
       this.clientService,
@@ -60,68 +82,69 @@ export class GameLoop {
       this.seatRepository,
       () => this.gameStateRepository.getDealerId()
     )
-    this.cardDealer = new CardDealer(this.deckManager, this.clientService)
 
     this.roundManager = new RoundManager(
       this.gameStateRepository,
       () => this.turnManager.getStartingPlayer(),
-      () => Array.from(this.playerRepository.getAllPlayers().values()).length
+      () => this.playerRepository.getPlayerCount()
     )
 
     this.playerManager = new PlayerManager(
       this.playerRepository,
       this.betRepository,
       this.seatRepository,
-      (amount: number) => (this.state.pot = amount),
       () => this.state.pot,
       () => this.state.currentBet,
-      () => this.gameStateRepository.getDealerId()
+      () => this.gameStateRepository.getDealerId(),
+      this.clientService
     )
+
     this.betManager = new BetManager(
       this.playerManager,
       this.betRepository,
       () => this.playerRepository.getAllPlayers(),
       () => this.gameStateRepository.getBinds()
     )
+
     this.gameManager = new GameManager(
       () => this.playerRepository.getAllPlayers(),
-      (count: number) => this.gameStateRepository.setActivePlayers(count),
-      (status: boolean) => (this.state.gameStarted = status),
+      (count) => this.gameStateRepository.setActivePlayers(count),
+      (status) => (this.state.gameStarted = status),
       this.gameLoop.bind(this)
     )
+  }
+  private initializeServices() {
+    this.cardDealer = new CardDealer(this.deckManager, this.clientService)
     this.PlayerActionService = new PlayerActionService(
       this.clientService,
       this.playerManager
     )
+    this.gameEvaluator = new GameEvaluator()
+  }
+  private initializeEvents() {
+    this.eventEmitter = GameEventEmitter.getInstance()
+    this.eventSubscriber = new EventSubscriber(this.eventEmitter)
     this.eventHandlers = createGameEventHandlers(
       this.gameManager,
       this.playerManager
     )
 
-    this.eventEmitter = GameEventEmitter.getInstance()
-    this.eventSubscriber = new EventSubscriber(this.eventEmitter)
-    this.subscribeToEvents()
-  }
-  private subscribeToEvents() {
-    const eventHandlers = createGameEventHandlers(
-      this.gameManager,
-      this.playerManager
-    )
-    Object.entries(eventHandlers).forEach(([event, handler]) => {
+    for (const [event, handler] of Object.entries(this.eventHandlers)) {
       this.eventSubscriber.subscribe(event as keyof GameEventTypes, handler)
-    })
+    }
   }
 
   async gameLoop() {
     while (
-      this.state.gameStarted &&
-      this.state.players.size >= this.state.MIN_PLAYERS
+      shouldContinueGame(
+        this.state.gameStarted,
+        this.state.players.size,
+        this.state.MIN_PLAYERS
+      )
     ) {
       console.log('Game loop running...')
 
-      const curentPlayers = Array.from(
-        this.playerRepository.getAllPlayers().values()
-      ).length
+      const curentPlayers = this.playerRepository.getPlayerCount()
       this.gameStateRepository.setActivePlayers(curentPlayers)
 
       const turn = this.turnManager.getStartingPlayer()
@@ -141,7 +164,7 @@ export class GameLoop {
 
       // start betting round
 
-      this.roundsCycle()
+      this.playRounds()
 
       this.turnManager.moveDealerPosition()
       this.playerManager.resetPlayers()
@@ -152,33 +175,31 @@ export class GameLoop {
     }
     console.log('Game loop stopped.')
   }
-  async roundsCycle() {
+  async playRounds() {
     while (this.roundManager.shouldContinueRounds()) {
-      await this.bettingRound()
+      await this.playBettingRound()
       this.roundManager.switchRound(undefined)
     }
-    if (
-      this.gameStateRepository.getActivePlayers() >=
-      this.gameStateRepository.getMinPlayers()
-    ) {
-      // one player left, other players folded
+    const activePlayers = this.gameStateRepository.getActivePlayers()
+    const allInPlayersCount = this.gameStateRepository.getAllInPlayersCount()
+
+    if (hasOnlyOneActivePlayer(activePlayers)) {
       this.playerManager.findLastActivePlayerAndAwardPot()
-      return
-    }
-    if (
-      this.gameStateRepository.getAllInPlayersCount() <
-      this.gameStateRepository.getActivePlayers()
-    ) {
-      // all players are all in
+    } else if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
       this.cardDealer.dealRemainingCommunityCards(
         this.deck,
         this.gameStateRepository.getCommunityCards()
       )
-      return
     }
-    // showdown
+    // calculate hands
+    const winnersResult = this.gameEvaluator.findWinners(
+      this.playerCards,
+      this.gameStateRepository.getCommunityCards()
+    )
+    // award winners and return from rounds
+    this.playerManager.awardPotToWinners(winnersResult)
   }
-  async bettingRound(): Promise<boolean> {
+  async playBettingRound(): Promise<boolean> {
     while (!this.turnManager.allPlayersActed()) {
       let currentPlayer: PlayerState = this.playerRepository.getPlayer(
         this.turnRepository.getCurrentTurn()
@@ -186,10 +207,8 @@ export class GameLoop {
       if (!currentPlayer) {
         return
       }
-      if (
-        this.gameStateRepository.getActivePlayers() <
-        this.gameStateRepository.getMinPlayers()
-      ) {
+      const activePlayers = this.gameStateRepository.getActivePlayers()
+      if (hasOnlyOneActivePlayer(activePlayers)) {
         return
       }
       console.log('test')

@@ -10,4 +10,7 @@ export class PlayerRepository implements IPlayerRepository {
   getAllPlayers(): Map<string, PlayerState> {
     return this.players
   }
+  getPlayerCount(): number {
+    return this.players.size
+  }
 }

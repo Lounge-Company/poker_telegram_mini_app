@@ -1,5 +1,5 @@
 import { Hand } from 'pokersolver'
-export interface Winner {
+export type Winner = {
   playerId: string
   hand: Hand
   handName: string

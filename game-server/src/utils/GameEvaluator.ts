@@ -1,32 +1,21 @@
 import { Hand, SolvedHand } from 'pokersolver'
 import { Card } from '../rooms/schema/Card'
+import { WinnersResult } from '../types/winnerResult'
+import { IGameEvaluator } from '../interfaces/IGameEvaluator'
+import { CompareHandsResult } from '../types/compareHandsResult'
 
-interface WinnersResult {
-  winningPlayerIds: string[]
-  winningHand: string
-}
-
-interface CompareHandsResult {
-  winner: 0 | 1 | 2
-  hand1Description: string
-  hand2Description: string
-}
-
-export class HandEvaluator {
-  static convertToPokerSolverFormat(cards: Card[]): string[] {
+export class GameEvaluator implements IGameEvaluator {
+  convertToPokerSolverFormat(cards: Card[]): string[] {
     return cards.map((card) => `${card.rank}${card.suit}`)
   }
 
-  static evaluateHand(playerCards: Card[], communityCards: Card[]): SolvedHand {
+  evaluateHand(playerCards: Card[], communityCards: Card[]): SolvedHand {
     const allCards = [...playerCards, ...communityCards]
     const formattedCards = this.convertToPokerSolverFormat(allCards)
     return Hand.solve(formattedCards)
   }
 
-  static findWinners(
-    hands: Map<string, Card[]>,
-    communityCards: Card[]
-  ): WinnersResult {
+  findWinners(hands: Map<string, Card[]>, communityCards: Card[]): WinnersResult {
     const solvedHands: SolvedHand[] = []
     const playerIds: string[] = []
 
@@ -43,7 +32,7 @@ export class HandEvaluator {
     }
   }
 
-  static compareHands(
+  compareHands(
     hand1: Card[],
     hand2: Card[],
     communityCards: Card[]
