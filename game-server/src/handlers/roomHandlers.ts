@@ -85,8 +85,7 @@ export class RoomHandlers {
    */
   @onMessage('joinGame')
   handlePlayerJoin(client: Client, data: { seatIndex: number; name: string }) {
-    // refactor this
-    console.log('data', data.seatIndex, data.name)
+    // fix this
     if (!isValidSeat(data.seatIndex)) {
       this.clientService.sendSystemMessage(
         client.sessionId,

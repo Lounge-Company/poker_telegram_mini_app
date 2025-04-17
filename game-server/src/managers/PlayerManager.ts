@@ -41,7 +41,7 @@ export class PlayerManager {
       player.hasFolded = true
       player.acted = true
       // this.playerRepository.updatePlayer(player)
-      this.updateActivePlayers()
+      this.decreaseActivePlayers()
     }
   }
   handleBet(playerId: string, amount: number) {
@@ -57,25 +57,34 @@ export class PlayerManager {
 
   resetPlayers() {
     this.playerRepository.getAllPlayers().forEach((player) => {
-      console.log('resetting player', player)
       player.acted = false
       player.hasFolded = false
+      player.isAllIn = false
       player.currentBet = 0
       // this.playerRepository.updatePlayer(player)
     })
   }
-  updateActivePlayers() {
-    const newCount = this.getActivePlayers() - 1
-    if (newCount >= 0) {
-      this.setActivePlayers(newCount)
-    }
+  resetPlayersBetweenRounds() {
+    this.playerRepository.getAllPlayers().forEach((player) => {
+      if (!player.hasFolded && !player.isAllIn) {
+        console.log(`Resetting player: ${player.name}`)
+        player.currentBet = 0
+        player.acted = false
+      }
+    })
+  }
+
+  decreaseActivePlayers() {
+    console.log('decrementing active players')
+    this.setActivePlayers(this.getActivePlayers() - 1)
   }
   getBlindsPositions() {
-    const players = this.playerRepository.getAllPlayers()
-    const seats = this.seatRepository.getSeats()
+    const seats = this.seatRepository.getSeats().filter((seat) => seat.playerId)
+    console.log('blind positions:', seats)
     const dealerIndex = seats.findIndex(
       (seat) => seat.playerId === this.getDealerId()
     )
+    console.log('dealer index:', dealerIndex)
     const smallBlindIndex = (dealerIndex + 1) % seats.length
     const bigBlindIndex = (dealerIndex + 2) % seats.length
 
@@ -95,7 +104,10 @@ export class PlayerManager {
 
     for (const player of players.values()) {
       if (!player.hasFolded) {
-        player.chips += this.betRepository.getPot()
+        this.addChips(player.id, this.betRepository.getPot())
+        console.log(
+          `adding chips to ${player.name}, pot: ${this.betRepository.getPot()}`
+        )
         this.betRepository.setPot(0)
         return player.id
       }
@@ -124,6 +136,13 @@ export class PlayerManager {
 
     player.hasFolded = true
     player.acted = true
-    // this.playerRepository.updatePlayer(player)
+    this.decreaseActivePlayers()
+    console.log('Player marked as folded:', playerId)
+  }
+  public markPlayerAsChecked(playerId: string): void {
+    const player = this.playerRepository.getPlayer(playerId)
+    if (!player) return
+    player.acted = true
+    console.log('Player marked as checked:', playerId)
   }
 }

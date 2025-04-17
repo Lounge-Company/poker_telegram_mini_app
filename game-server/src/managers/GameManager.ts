@@ -1,18 +1,25 @@
+import { SeatRepository } from '../repositories/Seat.repository'
+import { Seat } from '../rooms/schema/Seat'
 import { TurnManager } from './TurnManager'
 
 export class GameManager {
   constructor(
+    private seatRepository: SeatRepository,
     private getPlayers: () => Map<string, any>,
     private setActivePlayers: (count: number) => void,
     private setGameStarted: (status: boolean) => void,
+    private setDealerId: (id: string) => void,
     private gameLoop: () => Promise<void>
   ) {}
   async startGame() {
     console.log('Starting game...')
     this.setGameStarted(true)
-    // this.setActivePlayers(this.getPlayers().size)
-    // this.setCurrentTurn(this.getStartingPlayer())
-
+    const seats = this.seatRepository
+      .getSeats()
+      .filter((seat) => seat.playerId && seat.playerId !== '')
+    const firstOccupiedSeat: Seat = seats.find((seat) => seat.playerId)
+    console.log('set first dealer id:', firstOccupiedSeat.playerId)
+    this.setDealerId(firstOccupiedSeat.playerId)
     await this.gameLoop()
   }
 

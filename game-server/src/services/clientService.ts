@@ -54,7 +54,6 @@ export class ClientService {
   sendPlayerCards(playerId: string, cards: Card[]) {
     const client = this.getClientById(playerId)
     if (client) {
-      console.log('sendPlayerCards', cards)
       client.send('playerCards', cards)
     }
   }
@@ -82,7 +81,6 @@ export class ClientService {
    * })
    */
   broadcastTurn(playerId: string) {
-    console.log('broadcastTurn', playerId)
     this.room.broadcast('turn', playerId)
   }
   /**

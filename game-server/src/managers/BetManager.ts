@@ -15,7 +15,7 @@ export class BetManager {
 
   initializeBlinds() {
     const BLINDS = this.getBlinds()
-
+    let blindsSum = 0
     const blindPositions = this.playerManager.getBlindsPositions()
 
     const smallBlindPlayer = this.getPlayers().get(blindPositions.smallBlind)
@@ -24,12 +24,16 @@ export class BetManager {
     if (smallBlindPlayer) {
       smallBlindPlayer.chips -= BLINDS.SMALL
       smallBlindPlayer.currentBet = BLINDS.SMALL
+      blindsSum += BLINDS.SMALL
     }
 
     if (bigBlindPlayer) {
       bigBlindPlayer.chips -= BLINDS.BIG
       bigBlindPlayer.currentBet = BLINDS.BIG
+      blindsSum += BLINDS.BIG
     }
+    this.betRepository.setPot(blindsSum)
+    this.betRepository.setCurrentBet(BLINDS.BIG)
   }
 
   public allBetsEqual(): boolean {

@@ -1,10 +1,11 @@
 import { IGameStateRepository } from '../interfaces/repositories/IGameStateRepository'
 import { RoundType } from '../types/GameTypes'
+import { hasOnlyOneActivePlayer } from '../utils/game/hasOnlyOneActivePlayer'
+import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
 
 export class RoundManager {
   constructor(
     private gameStateRepository: IGameStateRepository,
-    private getStartingPlayer: () => string,
     private getPlayersCount: () => number
   ) {}
 
@@ -13,21 +14,20 @@ export class RoundManager {
   }
 
   shouldContinueRounds(): boolean {
-    if (
-      this.gameStateRepository.getActivePlayers() >=
-      this.gameStateRepository.getMinPlayers()
-    ) {
-      return true
+    const activePlayers = this.gameStateRepository.getActivePlayers()
+    const allInPlayersCount = this.gameStateRepository.getAllInPlayersCount()
+    const gamePhase = this.gameStateRepository.getGamePhase()
+    if (hasOnlyOneActivePlayer(activePlayers)) {
+      return false
     }
-    if (
-      this.gameStateRepository.getAllInPlayersCount() <
-      this.gameStateRepository.getActivePlayers()
-    ) {
+
+    if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
+      return false
     }
-    if (this.gameStateRepository.getGamePhase() !== RoundType.SHOWDOWN) {
-      return true
+    if (gamePhase == RoundType.SHOWDOWN) {
+      return false
     }
-    return false
+    return true
   }
 
   resetRound(): void {
@@ -50,7 +50,7 @@ export class RoundManager {
       nextRound ??
       phaseOrder[phaseOrder.indexOf(currentPhase) + 1] ??
       RoundType.PREFLOP
-
+    console.log('next phase', nextPhase)
     this.gameStateRepository.setGamePhase(nextPhase)
   }
 }

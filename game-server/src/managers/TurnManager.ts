@@ -17,13 +17,37 @@ export class TurnManager {
     this.state = state
   }
   getStartingPlayer(): string {
-    const seats = this.seatRepository.getSeats()
+    const seats = this.seatRepository
+      .getSeats()
+      .filter((seat) => seat.playerId && seat.playerId !== '')
+
+    console.log(
+      'Active seats:',
+      seats.map((seat) => ({
+        index: seat.index,
+        playerId: seat.playerId,
+      }))
+    )
+
     const dealerId = this.getDealerId()
     const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
 
-    const startingIndex = (dealerIndex + 3) % seats.length
+    if (dealerIndex === -1 || seats.length === 0) {
+      return seats[0]?.playerId
+    }
 
-    return seats[startingIndex].playerId
+    const startingIndex = (dealerIndex + 3) % seats.length
+    const startingPlayer = seats[startingIndex]?.playerId
+
+    console.log({
+      totalSeats: seats.length,
+      dealerId,
+      dealerIndex,
+      startingIndex,
+      startingPlayer,
+    })
+
+    return startingPlayer
   }
   public allPlayersActed(): boolean {
     for (const player of this.playerRepository.getAllPlayers().values()) {
@@ -45,21 +69,43 @@ export class TurnManager {
       const player = this.state.players.get(playerId)
 
       if (player && !player.acted) {
-        console.log('next index ', nextIndex)
-        console.log('player id ', playerId)
-        return (this.state.currentTurn = playerId)
+        this.state.currentTurn = playerId
+        return playerId
       }
     }
 
-    return undefined
+    return
+  }
+  getNextActivePlayerAfterDealer(): string {
+    const seats = this.seatRepository
+      .getSeats()
+      .filter((seat) => seat.playerId && seat.playerId !== '')
+
+    const dealerId = this.getDealerId()
+    const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
+
+    for (let i = 1; i <= seats.length; i++) {
+      const nextIndex = (dealerIndex + i) % seats.length
+      const playerId = seats[nextIndex].playerId
+      const player = this.playerRepository.getPlayer(playerId)
+
+      if (player && !player.acted && !player.hasFolded && !player.isAllIn) {
+        return playerId
+      }
+    }
+
+    return seats[0].playerId
   }
   moveDealerPosition(): void {
+    const seats = this.seatRepository
+      .getSeats()
+      .filter((seat) => seat.playerId && seat.playerId !== '')
+
     const dealerId = this.getDealerId()
-    const dealerIndex = this.state.seats.findIndex(
-      (seat) => seat.playerId === dealerId
-    )
-    const newDealerIndex = (dealerIndex + 1) % this.state.seats.length
-    const newDealerId = this.state.seats[newDealerIndex].playerId
+    const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
+    const newDealerIndex = (dealerIndex + 1) % seats.length
+    const newDealerId = seats[newDealerIndex].playerId
+    console.log('next dealer id:', newDealerId)
     this.state.dealerId = newDealerId
   }
 }

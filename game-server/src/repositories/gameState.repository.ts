@@ -39,7 +39,9 @@ export class GameStateRepository implements GameStateRepository {
   setCurrentTurn(turn: string): void {
     this.state.currentTurn = turn
   }
-
+  setDealerId(dealerId: string): void {
+    this.state.dealerId = dealerId
+  }
   getDealerId(): string {
     return this.state.dealerId
   }
