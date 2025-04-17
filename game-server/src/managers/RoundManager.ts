@@ -1,48 +1,56 @@
-import { GameState } from '../rooms/schema/GameState'
+import { IGameStateRepository } from '../interfaces/repositories/IGameStateRepository'
 import { RoundType } from '../types/GameTypes'
-import { TurnManager } from './TurnManager'
+import { hasOnlyOneActivePlayer } from '../utils/game/hasOnlyOneActivePlayer'
+import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
+
 export class RoundManager {
-  private state: GameState
-  private turnManager: TurnManager
-  constructor(state: GameState) {
-    this.state = state
-    this.turnManager = new TurnManager(state)
+  constructor(
+    private gameStateRepository: IGameStateRepository,
+    private getPlayersCount: () => number
+  ) {}
+
+  getCurrentRound(): RoundType {
+    return this.gameStateRepository.getGamePhase()
   }
-  getCurrentRound() {
-    return this.state.gamePhase
-  }
+
   shouldContinueRounds(): boolean {
-    const activePlayers = Array.from(this.state.players.values()).filter(
-      (player) => !player.hasFolded
-    )
-    if (activePlayers.length < this.state.MIN_PLAYERS) {
+    const activePlayers = this.gameStateRepository.getActivePlayers()
+    const allInPlayersCount = this.gameStateRepository.getAllInPlayersCount()
+    const gamePhase = this.gameStateRepository.getGamePhase()
+    if (hasOnlyOneActivePlayer(activePlayers)) {
       return false
     }
-    return
-  }
-  resetRound() {
-    this.state.gamePhase = RoundType.PREFLOP
-    this.state.currentBet = 0
-    this.state.currentTurn = this.turnManager.getStartingPlayer()
-    console.log('set current turn :', this.state.currentTurn)
-  }
-  nextRound(round: RoundType | undefined) {
-    switch (this.state.gamePhase) {
-      case RoundType.PREFLOP:
-        this.state.gamePhase = round | RoundType.FLOP
-        break
-      case RoundType.FLOP:
-        this.state.gamePhase = RoundType.TURN
-        break
-      case RoundType.TURN:
-        this.state.gamePhase = RoundType.RIVER
-        break
-      case RoundType.RIVER:
-        this.state.gamePhase = RoundType.SHOWDOWN
-        break
-      case RoundType.SHOWDOWN:
-        this.state.gamePhase = RoundType.PREFLOP
-        break
+
+    if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
+      return false
     }
+    if (gamePhase == RoundType.SHOWDOWN) {
+      return false
+    }
+    return true
+  }
+
+  resetRound(): void {
+    this.gameStateRepository.setGamePhase(RoundType.PREFLOP)
+    this.gameStateRepository.resetBets()
+    this.gameStateRepository.setActivePlayers(this.getPlayersCount())
+  }
+
+  switchRound(nextRound?: RoundType): void {
+    const phaseOrder = [
+      RoundType.PREFLOP,
+      RoundType.FLOP,
+      RoundType.TURN,
+      RoundType.RIVER,
+      RoundType.SHOWDOWN,
+    ]
+
+    const currentPhase = this.gameStateRepository.getGamePhase()
+    const nextPhase =
+      nextRound ??
+      phaseOrder[phaseOrder.indexOf(currentPhase) + 1] ??
+      RoundType.PREFLOP
+    console.log('next phase', nextPhase)
+    this.gameStateRepository.setGamePhase(nextPhase)
   }
 }

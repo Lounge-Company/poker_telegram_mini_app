@@ -1,19 +1,19 @@
 import { Room, Client } from 'colyseus'
 import { GameState } from '../rooms/schema/GameState'
 import { TurnValidator } from '../utils/game/TurnValidator'
-import { ActionService } from '../services/actionService'
 import { ClientService } from '../services/clientService'
 import {
   registerHandlers,
   onMessage,
 } from '../utils/decorators/registerHandler.decorator'
+import { GameEventEmitter } from '../events/gameEventEmitter'
 
 export class GameHandlers {
-  actionService: ActionService
+  eventEmitter: GameEventEmitter
   clientService: ClientService
   constructor(private room: Room, private state: GameState) {
-    this.actionService = new ActionService(state)
-    this.clientService = new ClientService()
+    this.clientService = ClientService.getInstance()
+    this.eventEmitter = GameEventEmitter.getInstance()
     registerHandlers(this, this.room)
   }
 
@@ -27,9 +27,8 @@ export class GameHandlers {
   @onMessage('check')
   handlePlayerCheck(client: Client) {
     if (!TurnValidator(this.state, client.sessionId)) return
-    const success = this.actionService.check(client.sessionId)
-    if (!success) return
-    this.clientService.broadcastPlayerCheck(this.room, client.sessionId)
+    this.eventEmitter.emit('playerCheck', client.sessionId)
+    this.clientService.broadcastPlayerCheck(client.sessionId)
   }
 
   /**
@@ -43,9 +42,8 @@ export class GameHandlers {
   handlePlayerCall(client: Client) {
     if (!TurnValidator(this.state, client.sessionId)) return
     console.log('handlePlayerCall :', client.sessionId)
-    const success = this.actionService.call(client.sessionId)
-    if (!success) return
-    this.clientService.broadcastPlayerCall(this.room, client.sessionId)
+    this.eventEmitter.emit('playerCall', client.sessionId)
+    this.clientService.broadcastPlayerCall(client.sessionId)
   }
 
   /**
@@ -59,9 +57,8 @@ export class GameHandlers {
   handlePlayerFold(client: Client) {
     if (!TurnValidator(this.state, client.sessionId)) return
     console.log('handlePlayerFold :', client.sessionId)
-    const success = this.actionService.fold(client.sessionId)
-    if (!success) return
-    this.clientService.broadcastPlayerFold(this.room, client.sessionId)
+    this.eventEmitter.emit('playerFold', client.sessionId)
+    this.clientService.broadcastPlayerFold(client.sessionId)
   }
 
   /**
@@ -78,8 +75,7 @@ export class GameHandlers {
     if (!TurnValidator(this.state, client.sessionId)) return
     if (isNaN(amount)) return
     console.log('handlePlayerBet :', client.sessionId, amount)
-    const success = this.actionService.bet(client.sessionId, amount)
-    if (!success) return
-    this.clientService.broadcastPlayerBet(this.room, client.sessionId, amount)
+    this.eventEmitter.emit('playerBet', client.sessionId, amount)
+    this.clientService.broadcastPlayerBet(client.sessionId, amount)
   }
 }

@@ -1,0 +1,54 @@
+import { Card } from '../rooms/schema/Card'
+import { GameState } from '../rooms/schema/GameState'
+import { RoundType } from '../types/GameTypes'
+
+export class GameStateRepository implements GameStateRepository {
+  constructor(private state: GameState) {}
+
+  getGamePhase(): RoundType {
+    return this.state.gamePhase
+  }
+
+  setGamePhase(phase: RoundType): void {
+    this.state.gamePhase = phase
+  }
+
+  getActivePlayers(): number {
+    return this.state.activePlayers
+  }
+  setActivePlayers(count: number): void {
+    this.state.activePlayers = count
+  }
+  getMinPlayers(): number {
+    return this.state.MIN_PLAYERS
+  }
+
+  getAllInPlayersCount(): number {
+    return this.state.allInPlayersCount
+  }
+
+  resetBets(): void {
+    this.state.currentBet = 0
+    this.state.activePlayers = this.state.players.size
+  }
+
+  getCurrentTurn(): string {
+    return this.state.currentTurn
+  }
+
+  setCurrentTurn(turn: string): void {
+    this.state.currentTurn = turn
+  }
+  setDealerId(dealerId: string): void {
+    this.state.dealerId = dealerId
+  }
+  getDealerId(): string {
+    return this.state.dealerId
+  }
+  getBinds(): { SMALL: number; BIG: number } {
+    return { SMALL: this.state.SMALL_BLIND, BIG: this.state.BIG_BLIND }
+  }
+  getCommunityCards(): Card[] {
+    return this.state.communityCards
+  }
+}
