@@ -1,0 +1,38 @@
+version: '3.8'
+
+services:
+  # Контейнер с user-service (Твоё Go-приложение)
+  user-service:
+    image: user-service
+    build:
+      context: . # Строим образ из текущей директории
+    environment:
+      DB_HOST: postgres
+      DB_USER: ${DB_USER}
+      DB_PASSWORD: ${DB_PASSWORD}
+      DB_NAME: ${DB_NAME}
+      DB_PORT: 5432
+    ports:
+      - '5000:5000'
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  # Контейнер с PostgreSQL
+  postgres:
+    image: postgres:16.0
+    environment:
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME}
+    healthcheck:
+     test: ["CMD_SHELL", "pg_isready", "-U", "${POSTGRES_USER}"]
+      interval: 10s      
+      retries: 5         
+      start_period: 5s   
+      timeout: 5s 
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+volumes:
+  postgres-data: # volume для хранения данных базы данных

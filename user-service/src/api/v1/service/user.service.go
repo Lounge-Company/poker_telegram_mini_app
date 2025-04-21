@@ -3,7 +3,7 @@ package service
 import (
 	"database/sql"
 	"errors"
-	model "user-service/src/models"
+	"user-service/src/api/v1/model"
 )
 
 type UserService struct {
