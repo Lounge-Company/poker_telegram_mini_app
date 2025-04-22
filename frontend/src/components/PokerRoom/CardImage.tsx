@@ -1,16 +1,13 @@
-import { cardImages, getFullRankName } from "src/services/CardImagesService";
+import { getCardImage } from "src/services/CardImagesService";
 import { CardType } from "src/types/game";
 
 const CardImage = ({ suit, rank }: CardType) => {
-  const fullRank = getFullRankName(rank);
-  const imageKey = `${suit}_${fullRank.toLowerCase()}`;
-
-  const imagePath = cardImages[imageKey];
+  const imagePath = getCardImage(suit, rank);
 
   if (!imagePath) {
     return (
       <div>
-        Loading... {suit} {rank} {fullRank}
+        Loading... {suit} {rank} {imagePath}
       </div>
     );
   }
