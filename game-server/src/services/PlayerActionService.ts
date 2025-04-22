@@ -18,10 +18,11 @@ export class PlayerActionService {
       this.clientService.broadcastTurn(player.id)
       const currentBet = this.getCurrentBet()
       const timer = setTimeout(() => {
-        if (!player.acted && currentBet > 0) {
+        if (!player.acted && player.currentBet !== currentBet) {
+          // <--- Im not sure about this
           this.playerManager.markPlayerAsFolded(player.id)
           resolve()
-        } else if (!player.acted && currentBet === 0) {
+        } else if (!player.acted && player.currentBet === currentBet) {
           this.playerManager.markPlayerAsChecked(player.id)
           resolve()
         }

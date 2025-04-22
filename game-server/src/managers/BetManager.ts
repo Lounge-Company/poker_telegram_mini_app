@@ -2,14 +2,14 @@ import { GameState } from '../rooms/schema/GameState'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { IBetRepository } from '../interfaces/repositories/IBetRepository'
 import { PlayerManager } from './PlayerManager'
-
+import { MapSchema } from '@colyseus/schema'
 export class BetManager {
   private state: GameState
 
   constructor(
     private playerManager: PlayerManager,
     private betRepository: IBetRepository,
-    private getPlayers: () => Map<string, PlayerState>,
+    private getPlayers: () => MapSchema<PlayerState>,
     private getBlinds: () => { SMALL: number; BIG: number }
   ) {}
 
