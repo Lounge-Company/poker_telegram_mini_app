@@ -40,15 +40,17 @@ export class CardDealer {
       }
     }
   }
-  dealRoundCards(deck: Card[], gamePhase: RoundType): void {
+  async dealRoundCards(deck: Card[], gamePhase: RoundType): Promise<void> {
     switch (gamePhase) {
       case RoundType.PREFLOP:
         this.dealCommunityCards(deck, 3)
-        console.log('community cards', this.communityCards.values())
+        break
       case RoundType.FLOP:
         this.dealCommunityCards(deck, 1)
+        break
       case RoundType.TURN:
         this.dealCommunityCards(deck, 1)
+        break
     }
   }
   dealRemainingCommunityCards(deck: Card[]): void {

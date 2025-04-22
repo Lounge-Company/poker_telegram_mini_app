@@ -190,11 +190,11 @@ export class GameLoop {
       // Prepare for next round
 
       // Deal cards for current game phase
-      this.cardDealer.dealRoundCards(
+      await this.cardDealer.dealRoundCards(
         this.deck,
         this.gameStateRepository.getGamePhase()
       )
-      this.roundManager.switchRound(undefined)
+      this.roundManager.switchRound()
       this.playerManager.resetPlayersBetweenRounds()
     }
 
