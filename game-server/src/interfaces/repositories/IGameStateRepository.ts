@@ -1,3 +1,4 @@
+import { Card } from '../../rooms/schema/Card'
 import { RoundType } from '../../types/GameTypes'
 
 export interface IGameStateRepository {
@@ -10,4 +11,6 @@ export interface IGameStateRepository {
   resetBets(): void
   getCurrentTurn(): string
   setCurrentTurn(turn: string): void
+  getCommunityCards(): Card[]
+  setCommunityCards(cards: Card[]): void
 }

@@ -8,7 +8,8 @@ import { RoundType } from '../types/GameTypes'
 export class CardDealer {
   constructor(
     private deckManager: DeckManager,
-    private clientService: ClientService
+    private clientService: ClientService,
+    private communityCards: Card[]
   ) {}
 
   dealPlayerCards(
@@ -31,32 +32,28 @@ export class CardDealer {
     return playerCards
   }
 
-  dealCommunityCards(deck: Card[], count: number): Card[] {
-    const communityCards: Card[] = []
-
+  dealCommunityCards(deck: Card[], count: number): void {
     for (let i = 0; i < count; i++) {
       const card = this.deckManager.drawCard(deck)
       if (card) {
-        communityCards.push(card)
+        this.communityCards.push(card)
       }
     }
-
-    this.clientService.broadcastCommunityCards(communityCards)
-    return communityCards
   }
   dealRoundCards(deck: Card[], gamePhase: RoundType): void {
     switch (gamePhase) {
-      case RoundType.FLOP:
+      case RoundType.PREFLOP:
         this.dealCommunityCards(deck, 3)
-      case RoundType.TURN:
+        console.log('community cards', this.communityCards.values())
+      case RoundType.FLOP:
         this.dealCommunityCards(deck, 1)
-      case RoundType.RIVER:
+      case RoundType.TURN:
         this.dealCommunityCards(deck, 1)
     }
   }
-  dealRemainingCommunityCards(deck: Card[], communityCards: Array<Card>): void {
-    if (communityCards.length < 5) {
-      this.dealCommunityCards(deck, 5 - communityCards.length)
+  dealRemainingCommunityCards(deck: Card[]): void {
+    if (this.communityCards.length < 5) {
+      this.dealCommunityCards(deck, 5 - this.communityCards.length)
     }
   }
 }

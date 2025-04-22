@@ -115,7 +115,11 @@ export class GameLoop {
     )
   }
   private initializeServices() {
-    this.cardDealer = new CardDealer(this.deckManager, this.clientService)
+    this.cardDealer = new CardDealer(
+      this.deckManager,
+      this.clientService,
+      this.state.communityCards
+    )
     this.PlayerActionService = new PlayerActionService(
       this.clientService,
       this.playerManager,
@@ -205,10 +209,7 @@ export class GameLoop {
       console.log('===================================================')
       this.playerManager.findLastActivePlayerAndAwardPot()
     } else if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
-      this.cardDealer.dealRemainingCommunityCards(
-        this.deck,
-        this.gameStateRepository.getCommunityCards()
-      )
+      this.cardDealer.dealRemainingCommunityCards(this.deck)
     }
 
     // Determine winners and award pot

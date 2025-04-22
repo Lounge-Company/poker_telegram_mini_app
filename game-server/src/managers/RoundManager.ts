@@ -34,6 +34,7 @@ export class RoundManager {
     this.gameStateRepository.setGamePhase(RoundType.PREFLOP)
     this.gameStateRepository.resetBets()
     this.gameStateRepository.setActivePlayers(this.getPlayersCount())
+    this.gameStateRepository.setCommunityCards([])
   }
 
   switchRound(nextRound?: RoundType): void {
