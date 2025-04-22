@@ -19,17 +19,17 @@ export class PlayerManager {
   handleCheck(playerId: string) {
     const player = this.playerRepository.getPlayer(playerId)
     if (player && this.betRepository.getCurrentBet() === 0) {
-      console.log(`Player ${player.name} checked.`)
       player.acted = true
       // this.playerRepository.updatePlayer(player)
     }
   }
 
   handleCall(playerId: string) {
+    //add all in check
     const player = this.playerRepository.getPlayer(playerId)
     if (player && player.chips >= this.betRepository.getCurrentBet()) {
       player.chips -= this.betRepository.getCurrentBet()
-      this.betRepository.setPot(player.chips)
+      this.betRepository.setPot(this.betRepository.getCurrentBet() * 2)
       player.acted = true
       // this.playerRepository.updatePlayer(player)
     }

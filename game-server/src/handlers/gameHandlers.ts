@@ -27,6 +27,7 @@ export class GameHandlers {
   @onMessage('check')
   handlePlayerCheck(client: Client) {
     if (!TurnValidator(this.state, client.sessionId)) return
+    console.log('handlePlayerCheck :', client.sessionId)
     this.eventEmitter.emit('playerCheck', client.sessionId)
     this.clientService.broadcastPlayerCheck(client.sessionId)
   }
