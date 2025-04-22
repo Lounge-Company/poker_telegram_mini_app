@@ -20,6 +20,7 @@ export class PlayerActionService {
       const timer = setTimeout(() => {
         if (!player.acted && player.currentBet !== currentBet) {
           // <--- Im not sure about this
+
           this.playerManager.markPlayerAsFolded(player.id)
           resolve()
         } else if (!player.acted && player.currentBet === currentBet) {
