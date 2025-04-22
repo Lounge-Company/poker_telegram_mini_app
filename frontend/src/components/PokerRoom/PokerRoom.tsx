@@ -8,6 +8,7 @@ import JoinModal from "./JoinModal";
 import { getPlayerInfo } from "src/services/funcService";
 import GameInfo from "./GameInfo";
 import { useRotatedPositions } from "src/hooks/useRotatedPositions";
+import GameBacklog from "./GameBacklog";
 
 const PokerRoom = () => {
   const { gameState, roomRef } = usePokerRoom();
@@ -28,6 +29,7 @@ const PokerRoom = () => {
     setModalIsOpen(false);
   };
   if (!gameState || !sessionId) return <div>Loading...</div>;
+
   return (
     <div className={"flex flex-col h-full w-full"}>
       <div className="relative flex-grow flex items-center justify-center w-full min-h-0">
@@ -37,7 +39,7 @@ const PokerRoom = () => {
             className="w-auto h-auto max-w-full max-h-full object-contain"
           />
         </div>
-        <GameInfo gameState={gameState} currentPlayer={currentPlayer} />
+        {/* <GameInfo gameState={gameState} currentPlayer={currentPlayer} /> */}
         {rotatedPositions.map((position, idx) => {
           const { isOccupied, player, isTurn, playerCards } = getPlayerInfo(
             gameState.seats[idx],
@@ -64,6 +66,7 @@ const PokerRoom = () => {
       <div className="h-20 w-full flex items-center justify-center">
         <PokerActions room={roomRef.current} />
       </div>
+      <GameBacklog gamestate={gameState} /> //Данные о GAMESTATE
       <JoinModal
         modalIsOpen={modalIsOpen}
         closeModal={closeModal}
