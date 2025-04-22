@@ -64,6 +64,9 @@ const GameBacklog = ({ gamestate }: GameBacklogProps) => {
       <div>
         <b>TURN_TIME:</b> {gamestate.TURN_TIME}
       </div>
+      <div>
+        <b>DEALER: </b> {gamestate.dealerId}
+      </div>
 
       <hr className="my-2 border-white/20" />
 
