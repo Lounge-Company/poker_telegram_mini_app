@@ -3,6 +3,7 @@ export type ColyseusState = {
   seats: SeatType[];
   communityCards: CardType[];
   currentTurn: string;
+  dealerId: string;
   gameStarted: boolean;
   pot: number;
   currentBet: number;

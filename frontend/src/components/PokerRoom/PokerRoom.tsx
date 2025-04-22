@@ -6,13 +6,13 @@ import usePokerRoom from "src/hooks/usePokerRoom";
 import { useState } from "react";
 import JoinModal from "./JoinModal";
 import { getPlayerInfo } from "src/services/funcService";
-import GameInfo from "./GameInfo";
 import { useRotatedPositions } from "src/hooks/useRotatedPositions";
 import GameBacklog from "./GameBacklog";
+import CardImage from "./CardImage";
 
 const PokerRoom = () => {
   const { gameState, roomRef } = usePokerRoom();
-  const currentPlayer = gameState.players.get(gameState.currentTurn);
+  // const currentPlayer = gameState.players.get(gameState.currentTurn);
   const sessionId = roomRef.current?.sessionId;
 
   const [modalIsOpen, setModalIsOpen] = useState(false);
@@ -28,6 +28,7 @@ const PokerRoom = () => {
   const closeModal = () => {
     setModalIsOpen(false);
   };
+
   if (!gameState || !sessionId) return <div>Loading...</div>;
 
   return (
@@ -39,9 +40,16 @@ const PokerRoom = () => {
             className="w-auto h-auto max-w-full max-h-full object-contain"
           />
         </div>
-        {/* <GameInfo gameState={gameState} currentPlayer={currentPlayer} /> */}
+
+        <div className="absolute inset-0 flex items-center justify-center gap-2">
+          {gameState.communityCards.map(({ suit, rank }) => {
+            return <CardImage suit={suit} rank={rank} size="w-12" />;
+          })}
+        </div>
+
+        {/* SEATS */}
         {rotatedPositions.map((position, idx) => {
-          const { isOccupied, player, isTurn, playerCards } = getPlayerInfo(
+          const playerInfo = getPlayerInfo(
             gameState.seats[idx],
             gameState,
             sessionId
@@ -49,24 +57,21 @@ const PokerRoom = () => {
           return (
             <Seat
               key={idx}
-              x={position.x}
-              y={position.y}
-              dx={position.dx}
-              dy={position.dy}
+              {...position}
               num={idx}
               onClick={handleSeatClick}
-              isOccupied={isOccupied}
-              player={player}
-              turn={isTurn}
-              playerCards={playerCards}
+              {...playerInfo}
             />
           );
         })}
       </div>
       <div className="h-20 w-full flex items-center justify-center">
-        <PokerActions room={roomRef.current} />
+        <PokerActions
+          room={roomRef.current}
+          isGameStarted={gameState.gameStarted}
+        />
       </div>
-      <GameBacklog gamestate={gameState} /> //Данные о GAMESTATE
+      <GameBacklog gamestate={gameState} />
       <JoinModal
         modalIsOpen={modalIsOpen}
         closeModal={closeModal}
