@@ -18,20 +18,33 @@ export class PlayerManager {
   ) {}
   handleCheck(playerId: string) {
     const player = this.playerRepository.getPlayer(playerId)
-    if (player && this.betRepository.getCurrentBet() === 0) {
+    const currentBet = this.betRepository.getCurrentBet()
+    if (player && player.currentBet === currentBet) {
+      console.log('handlePlayerCheck :', player.id, player.name)
       player.acted = true
       // this.playerRepository.updatePlayer(player)
     }
   }
 
   handleCall(playerId: string) {
-    //add all in check
     const player = this.playerRepository.getPlayer(playerId)
-    if (player && player.chips >= this.betRepository.getCurrentBet()) {
-      player.chips -= this.betRepository.getCurrentBet()
-      this.betRepository.setPot(this.betRepository.getCurrentBet() * 2)
-      player.acted = true
-      // this.playerRepository.updatePlayer(player)
+    if (player) {
+      const currentBet = this.betRepository.getCurrentBet()
+      const amountToCall = currentBet - player.currentBet
+
+      if (player.chips >= amountToCall) {
+        player.chips -= amountToCall
+        this.betRepository.setPot(this.betRepository.getPot() + amountToCall)
+        player.currentBet = currentBet
+        player.acted = true
+      } else {
+        // Обработка ситуации all-in
+        this.betRepository.setPot(this.betRepository.getPot() + player.chips)
+        player.currentBet += player.chips
+        player.chips = 0
+        player.isAllIn = true
+        player.acted = true
+      }
     }
   }
 
@@ -80,7 +93,6 @@ export class PlayerManager {
   }
   getBlindsPositions() {
     const seats = this.seatRepository.getSeats().filter((seat) => seat.playerId)
-    console.log('blind positions:', seats)
     const dealerIndex = seats.findIndex(
       (seat) => seat.playerId === this.getDealerId()
     )
@@ -137,12 +149,10 @@ export class PlayerManager {
     player.hasFolded = true
     player.acted = true
     this.decreaseActivePlayers()
-    console.log('Player marked as folded:', playerId)
   }
   public markPlayerAsChecked(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
     player.acted = true
-    console.log('Player marked as checked:', playerId)
   }
 }

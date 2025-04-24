@@ -15,15 +15,17 @@ export class PlayerActionService {
     player: PlayerState
   ): Promise<void> {
     return new Promise((resolve) => {
+      console.log('curent turn player', player.id, player.name)
       this.clientService.broadcastTurn(player.id)
       const currentBet = this.getCurrentBet()
       const timer = setTimeout(() => {
         if (!player.acted && player.currentBet !== currentBet) {
           // <--- Im not sure about this
-
+          console.log('Player marked as folded:', player.id, player.name)
           this.playerManager.markPlayerAsFolded(player.id)
           resolve()
         } else if (!player.acted && player.currentBet === currentBet) {
+          console.log('Player marked as checked:', player.id, player.name)
           this.playerManager.markPlayerAsChecked(player.id)
           resolve()
         }

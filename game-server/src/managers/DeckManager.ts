@@ -28,4 +28,7 @@ export class DeckManager {
   drawCard(deck: Card[]): Card {
     return deck.pop()
   }
+  resetDeck() {
+    this.deck = []
+  }
 }

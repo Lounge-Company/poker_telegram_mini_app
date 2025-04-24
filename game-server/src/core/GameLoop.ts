@@ -177,6 +177,8 @@ export class GameLoop {
       this.playerManager.resetPlayers()
 
       this.roundManager.resetRound()
+      this.deckManager.resetDeck()
+      this.playerCards = new Map<string, Card[]>()
       await new Promise((resolve) => setTimeout(resolve, this.state.GAME_LOOP_DELAY))
     }
     console.log('Game loop stopped.')
@@ -196,6 +198,7 @@ export class GameLoop {
       )
       this.roundManager.switchRound()
       this.playerManager.resetPlayersBetweenRounds()
+      this.betManager.resetBet()
     }
 
     // Get current game state
@@ -224,13 +227,6 @@ export class GameLoop {
       !this.turnManager.allPlayersActed() &&
       this.roundManager.shouldContinueRounds()
     ) {
-      const activePlayers = this.gameStateRepository.getActivePlayers()
-
-      if (hasOnlyOneActivePlayer(activePlayers)) {
-        console.log('only one active player')
-        return
-      }
-
       const currentTurnPlayerId = this.getCurrentTurnPlayerId()
 
       if (!currentTurnPlayerId) {
@@ -241,6 +237,12 @@ export class GameLoop {
       const currentPlayer = this.playerRepository.getPlayer(currentTurnPlayerId)
       await this.handlePlayerAction(currentPlayer)
 
+      const activePlayers = this.gameStateRepository.getActivePlayers()
+
+      if (hasOnlyOneActivePlayer(activePlayers)) {
+        console.log('only one active player')
+        return
+      }
       const nextTurn = this.turnManager.getNextPlayerTurn()
       if (!nextTurn) {
         return
