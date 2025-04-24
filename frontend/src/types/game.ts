@@ -8,9 +8,18 @@ export type ColyseusState = {
   pot: number;
   currentBet: number;
   TURN_TIME: number;
+  gamePhase: RoundType;
   // мои поля
   playerCards: CardType[];
 };
+
+export enum RoundType {
+  PREFLOP,
+  FLOP,
+  TURN,
+  RIVER,
+  SHOWDOWN,
+}
 
 export type CardType = {
   suit: string;

@@ -12,7 +12,7 @@ const JoinModal = ({
   modalIsOpen,
   closeModal,
   seatNumber,
-  room
+  room,
 }: JoinModalProps) => {
   const handleJoin = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -34,8 +34,8 @@ const JoinModal = ({
       overlayClassName="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center"
       style={{
         overlay: {
-          backgroundColor: "rgba(0, 0, 0, 0.1)" // Полупрозрачный черный фон
-        }
+          backgroundColor: "rgba(0, 0, 0, 0.1)", // Полупрозрачный черный фон
+        },
       }}
     >
       <div className="flex justify-between items-center mb-4">
@@ -56,6 +56,10 @@ const JoinModal = ({
             type="text"
             className="border border-gray-300 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
             required
+            autoComplete="off"
+            autoCapitalize="off"
+            autoCorrect="off"
+            spellCheck="false"
           />
         </label>
 
