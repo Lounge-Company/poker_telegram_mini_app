@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Room } from "colyseus.js";
-import { CardType, ColyseusState } from "src/types/game";
+import { CardType, ColyseusState, RoundType } from "src/types/game";
 import RoomService from "src/services/RoomService";
 
 const usePokerRoom = () => {
@@ -14,6 +14,7 @@ const usePokerRoom = () => {
     pot: 0,
     currentBet: 0,
     TURN_TIME: 20000,
+    gamePhase: RoundType.PREFLOP,
     playerCards: [],
     dealerId: "",
   });
@@ -52,12 +53,14 @@ const usePokerRoom = () => {
           suit: card.suit,
           rank: card.rank,
         })),
+
         currentTurn: state.currentTurn,
         dealerId: state.dealerId,
         gameStarted: state.gameStarted,
         pot: state.pot,
         currentBet: state.currentBet,
         TURN_TIME: state.TURN_TIME,
+        gamePhase: state.gamePhase,
         // мои поля
         playerCards: prevState.playerCards,
       }));

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { ColyseusState } from "src/types/game";
+import { ColyseusState, RoundType } from "src/types/game";
 
 interface GameBacklogProps {
   gamestate: ColyseusState;
@@ -49,11 +49,23 @@ const GameBacklog = ({ gamestate }: GameBacklogProps) => {
       </div>
 
       {/* Простые поля */}
+
+      <div>
+        <b>Game Started:</b> {String(gamestate.gameStarted)}
+      </div>
+      <div>
+        <b>Game Phase:</b>{" "}
+        {(gamestate.gamePhase === RoundType.PREFLOP && "Preflop") ||
+          (gamestate.gamePhase === RoundType.FLOP && "FLOP") ||
+          (gamestate.gamePhase === RoundType.RIVER && "RIVER") ||
+          (gamestate.gamePhase === RoundType.SHOWDOWN && "SHOWDOWN") ||
+          (gamestate.gamePhase === RoundType.TURN && "TURN")}
+      </div>
       <div>
         <b>Current Turn:</b> {gamestate.currentTurn}
       </div>
       <div>
-        <b>Game Started:</b> {String(gamestate.gameStarted)}
+        <b>DEALER: </b> {gamestate.dealerId}
       </div>
       <div>
         <b>Pot:</b> {gamestate.pot}
