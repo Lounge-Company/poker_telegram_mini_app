@@ -100,4 +100,7 @@ export class TurnManager {
     console.log('next dealer id:', newDealerId)
     this.state.dealerId = newDealerId
   }
+  resetCurrentTurn(): void {
+    this.state.currentTurn = ''
+  }
 }

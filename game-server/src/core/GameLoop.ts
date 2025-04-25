@@ -118,7 +118,8 @@ export class GameLoop {
     this.cardDealer = new CardDealer(
       this.deckManager,
       this.clientService,
-      this.state.communityCards
+      () => this.gameStateRepository.getCommunityCards(),
+      (card: Card) => this.gameStateRepository.addCommunityCard(card)
     )
     this.PlayerActionService = new PlayerActionService(
       this.clientService,
@@ -199,6 +200,7 @@ export class GameLoop {
       this.roundManager.switchRound()
       this.playerManager.resetPlayersBetweenRounds()
       this.betManager.resetBet()
+      this.turnManager.resetCurrentTurn()
     }
 
     // Get current game state
@@ -228,12 +230,8 @@ export class GameLoop {
       this.roundManager.shouldContinueRounds()
     ) {
       const currentTurnPlayerId = this.getCurrentTurnPlayerId()
-
-      if (!currentTurnPlayerId) {
-        console.log('current player not found')
-        return
-      }
-
+      this.turnRepository.setCurrentTurn(currentTurnPlayerId)
+      console.log('currentTurnPlayerId :', currentTurnPlayerId)
       const currentPlayer = this.playerRepository.getPlayer(currentTurnPlayerId)
       await this.handlePlayerAction(currentPlayer)
 
@@ -254,9 +252,9 @@ export class GameLoop {
   }
 
   private getCurrentTurnPlayerId(): string | null {
-    const currentTurnPlayerId = this.turnRepository.getCurrentTurn()
+    let currentTurnPlayerId = this.turnRepository.getCurrentTurn()
     if (!currentTurnPlayerId) {
-      return this.turnManager.getNextActivePlayerAfterDealer()
+      currentTurnPlayerId = this.turnManager.getNextActivePlayerAfterDealer()
     }
     return currentTurnPlayerId
   }

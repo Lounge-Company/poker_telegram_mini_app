@@ -59,15 +59,20 @@ export class PlayerManager {
   }
   handleBet(playerId: string, amount: number) {
     const player = this.playerRepository.getPlayer(playerId)
+
     if (player && player.chips >= amount) {
       player.chips -= amount
-      this.betRepository.setPot(amount)
-      this.betRepository.setCurrentBet(amount)
+      const currentBet = this.betRepository.getCurrentBet()
+      this.betRepository.setPot(this.betRepository.getPot() + amount)
+      if (amount > currentBet) {
+        this.betRepository.setCurrentBet(amount)
+        this.resetActedPlayers()
+      }
+      player.currentBet += amount
       player.acted = true
       // this.playerRepository.updatePlayer(player)
     }
   }
-
   resetPlayers() {
     this.playerRepository.getAllPlayers().forEach((player) => {
       player.acted = false
@@ -77,7 +82,7 @@ export class PlayerManager {
       // this.playerRepository.updatePlayer(player)
     })
   }
-  resetPlayersBetweenRounds() {
+  resetPlayersBetweenRounds(): void {
     this.playerRepository.getAllPlayers().forEach((player) => {
       if (!player.hasFolded && !player.isAllIn) {
         console.log(`Resetting player: ${player.name}`)
@@ -142,7 +147,7 @@ export class PlayerManager {
 
     this.clientService.broadcastGameResult(resultToSend)
   }
-  public markPlayerAsFolded(playerId: string): void {
+  markPlayerAsFolded(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
 
@@ -150,9 +155,17 @@ export class PlayerManager {
     player.acted = true
     this.decreaseActivePlayers()
   }
-  public markPlayerAsChecked(playerId: string): void {
+  markPlayerAsChecked(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
     player.acted = true
+  }
+  resetActedPlayers() {
+    const players = this.playerRepository.getAllPlayers()
+    players.forEach((player) => {
+      if (!player.hasFolded && !player.isAllIn) {
+        player.acted = false
+      }
+    })
   }
 }

@@ -55,4 +55,7 @@ export class GameStateRepository implements IGameStateRepository {
   setCommunityCards(cards: Card[]): void {
     this.state.communityCards = cards
   }
+  addCommunityCard(card: Card): void {
+    this.state.communityCards.push(card)
+  }
 }
