@@ -24,9 +24,10 @@ import { shouldContinueGame } from '../utils/game/shouldContinueGame'
 import { hasOnlyOneActivePlayer } from '../utils/game/hasOnlyOneActivePlayer'
 import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
 import { GameEvaluator } from '../utils/GameEvaluator'
+import { PlayerCards } from '../types/PlayerCards'
 
 export class GameLoop {
-  private playerCards: Map<string, Card[]> = new Map()
+  private playerCards: PlayerCards = new Map()
   private deck: Card[] = []
 
   state: GameState
@@ -210,7 +211,7 @@ export class GameLoop {
     // Handle end game scenarios
     if (hasOnlyOneActivePlayer(activePlayers)) {
       console.log('===================================================')
-      console.log('Only one player left. Active player:', activePlayers)
+      console.log('Only one player left. Active players:', activePlayers)
       console.log('===================================================')
       this.playerManager.findLastActivePlayerAndAwardPot()
     } else if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {

@@ -1,4 +1,6 @@
+import { PlayerHandEvaluation } from './PlayerHandEvaluation'
+
 export type WinnersResult = {
-  winningPlayerIds: string[]
-  winningHand: string
+  winner: PlayerHandEvaluation
+  otherHands: PlayerHandEvaluation[]
 }

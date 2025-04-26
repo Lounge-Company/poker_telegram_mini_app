@@ -1,5 +1,5 @@
 import { Card } from '../rooms/schema/Card'
-import { GameResultMessage } from '../types/GameResultPayload'
+import { WinnersResult } from '../types/winnerResult'
 import { MessageService } from './messageService'
 export class ClientService {
   private static instance: ClientService
@@ -118,7 +118,7 @@ export class ClientService {
   broadcastPlayerWin(playerId: string) {
     this.room.broadcast('playerWin', playerId)
   }
-  broadcastGameResult(winnersResult: GameResultMessage) {
+  broadcastGameResult(winnersResult: WinnersResult) {
     this.room.broadcast('gameResult', winnersResult)
   }
 }

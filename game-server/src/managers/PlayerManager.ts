@@ -4,7 +4,6 @@ import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
 import { ISeatRepository } from '../interfaces/repositories/ISeatRepository'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
-import { GameResultMessage } from '../types/GameResultPayload'
 
 export class PlayerManager {
   constructor(
@@ -41,6 +40,7 @@ export class PlayerManager {
         // Обработка ситуации all-in
         this.betRepository.setPot(this.betRepository.getPot() + player.chips)
         player.currentBet += player.chips
+        this.betRepository.setCurrentBet(player.currentBet)
         player.chips = 0
         player.isAllIn = true
         player.acted = true
@@ -62,15 +62,23 @@ export class PlayerManager {
 
     if (player && player.chips >= amount) {
       player.chips -= amount
+      player.currentBet += amount
       const currentBet = this.betRepository.getCurrentBet()
       this.betRepository.setPot(this.betRepository.getPot() + amount)
-      if (amount > currentBet) {
-        this.betRepository.setCurrentBet(amount)
+      if (player.currentBet > currentBet) {
+        this.betRepository.setCurrentBet(player.currentBet)
         this.resetActedPlayers()
       }
-      player.currentBet += amount
       player.acted = true
       // this.playerRepository.updatePlayer(player)
+    } else {
+      // Обработка ситуации all-in
+      this.betRepository.setPot(this.betRepository.getPot() + player.chips)
+      player.currentBet += player.chips
+      this.betRepository.setCurrentBet(player.currentBet)
+      player.chips = 0
+      player.isAllIn = true
+      player.acted = true
     }
   }
   resetPlayers() {
@@ -132,20 +140,10 @@ export class PlayerManager {
   }
   awardPotToWinners(winnersResult: WinnersResult) {
     // fix it for full poker implementation
-    const { winningPlayerIds, winningHand } = winnersResult
-    const totalPot = this.betRepository.getPot()
-    const splitAmount = Math.floor(totalPot / winningPlayerIds.length) // <--- fix this
-
-    const resultToSend: GameResultMessage = {
-      pot: totalPot,
-      winners: winningPlayerIds.map((playerId) => ({
-        playerId,
-        amount: splitAmount,
-        hand: winningHand,
-      })),
-    }
-
-    this.clientService.broadcastGameResult(resultToSend)
+    const { winner } = winnersResult
+    const winnerPlayer = this.playerRepository.getPlayer(winner.playerId)
+    this.clientService.broadcastGameResult(winnersResult)
+    winnerPlayer.chips += this.betRepository.getPot()
   }
   markPlayerAsFolded(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
