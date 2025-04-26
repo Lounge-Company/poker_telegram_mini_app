@@ -9,7 +9,8 @@ export class CardDealer {
   constructor(
     private deckManager: DeckManager,
     private clientService: ClientService,
-    private communityCards: Card[]
+    private getCommunityCards: () => Card[],
+    private addCommunityCards: (card: Card) => void
   ) {}
 
   dealPlayerCards(
@@ -35,27 +36,32 @@ export class CardDealer {
   dealCommunityCards(deck: Card[], count: number): void {
     for (let i = 0; i < count; i++) {
       const card = this.deckManager.drawCard(deck)
+      console.log('card', card.suit, card.rank)
       if (card) {
-        this.communityCards.push(card)
+        this.addCommunityCards(card)
       }
     }
   }
   async dealRoundCards(deck: Card[], gamePhase: RoundType): Promise<void> {
     switch (gamePhase) {
       case RoundType.PREFLOP:
+        console.log('deal flop')
         this.dealCommunityCards(deck, 3)
         break
       case RoundType.FLOP:
+        console.log('deal turn')
         this.dealCommunityCards(deck, 1)
         break
       case RoundType.TURN:
+        console.log('deal river')
         this.dealCommunityCards(deck, 1)
         break
     }
   }
   dealRemainingCommunityCards(deck: Card[]): void {
-    if (this.communityCards.length < 5) {
-      this.dealCommunityCards(deck, 5 - this.communityCards.length)
+    const communityCards = this.getCommunityCards()
+    if (communityCards.length < 5) {
+      this.dealCommunityCards(deck, 5 - communityCards.length)
     }
   }
 }

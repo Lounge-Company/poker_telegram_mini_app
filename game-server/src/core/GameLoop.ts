@@ -24,9 +24,10 @@ import { shouldContinueGame } from '../utils/game/shouldContinueGame'
 import { hasOnlyOneActivePlayer } from '../utils/game/hasOnlyOneActivePlayer'
 import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
 import { GameEvaluator } from '../utils/GameEvaluator'
+import { PlayerCards } from '../types/PlayerCards'
 
 export class GameLoop {
-  private playerCards: Map<string, Card[]> = new Map()
+  private playerCards: PlayerCards = new Map()
   private deck: Card[] = []
 
   state: GameState
@@ -118,7 +119,8 @@ export class GameLoop {
     this.cardDealer = new CardDealer(
       this.deckManager,
       this.clientService,
-      this.state.communityCards
+      () => this.gameStateRepository.getCommunityCards(),
+      (card: Card) => this.gameStateRepository.addCommunityCard(card)
     )
     this.PlayerActionService = new PlayerActionService(
       this.clientService,
@@ -177,6 +179,8 @@ export class GameLoop {
       this.playerManager.resetPlayers()
 
       this.roundManager.resetRound()
+      this.deckManager.resetDeck()
+      this.playerCards = new Map<string, Card[]>()
       await new Promise((resolve) => setTimeout(resolve, this.state.GAME_LOOP_DELAY))
     }
     console.log('Game loop stopped.')
@@ -196,6 +200,8 @@ export class GameLoop {
       )
       this.roundManager.switchRound()
       this.playerManager.resetPlayersBetweenRounds()
+      this.betManager.resetBet()
+      this.turnManager.resetCurrentTurn()
     }
 
     // Get current game state
@@ -205,7 +211,7 @@ export class GameLoop {
     // Handle end game scenarios
     if (hasOnlyOneActivePlayer(activePlayers)) {
       console.log('===================================================')
-      console.log('Only one player left. Active player:', activePlayers)
+      console.log('Only one player left. Active players:', activePlayers)
       console.log('===================================================')
       this.playerManager.findLastActivePlayerAndAwardPot()
     } else if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
@@ -224,23 +230,18 @@ export class GameLoop {
       !this.turnManager.allPlayersActed() &&
       this.roundManager.shouldContinueRounds()
     ) {
+      const currentTurnPlayerId = this.getCurrentTurnPlayerId()
+      this.turnRepository.setCurrentTurn(currentTurnPlayerId)
+      console.log('currentTurnPlayerId :', currentTurnPlayerId)
+      const currentPlayer = this.playerRepository.getPlayer(currentTurnPlayerId)
+      await this.handlePlayerAction(currentPlayer)
+
       const activePlayers = this.gameStateRepository.getActivePlayers()
 
       if (hasOnlyOneActivePlayer(activePlayers)) {
         console.log('only one active player')
         return
       }
-
-      const currentTurnPlayerId = this.getCurrentTurnPlayerId()
-
-      if (!currentTurnPlayerId) {
-        console.log('current player not found')
-        return
-      }
-
-      const currentPlayer = this.playerRepository.getPlayer(currentTurnPlayerId)
-      await this.handlePlayerAction(currentPlayer)
-
       const nextTurn = this.turnManager.getNextPlayerTurn()
       if (!nextTurn) {
         return
@@ -252,9 +253,9 @@ export class GameLoop {
   }
 
   private getCurrentTurnPlayerId(): string | null {
-    const currentTurnPlayerId = this.turnRepository.getCurrentTurn()
+    let currentTurnPlayerId = this.turnRepository.getCurrentTurn()
     if (!currentTurnPlayerId) {
-      return this.turnManager.getNextActivePlayerAfterDealer()
+      currentTurnPlayerId = this.turnManager.getNextActivePlayerAfterDealer()
     }
     return currentTurnPlayerId
   }

@@ -21,14 +21,6 @@ export class TurnManager {
       .getSeats()
       .filter((seat) => seat.playerId && seat.playerId !== '')
 
-    console.log(
-      'Active seats:',
-      seats.map((seat) => ({
-        index: seat.index,
-        playerId: seat.playerId,
-      }))
-    )
-
     const dealerId = this.getDealerId()
     const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
 
@@ -84,7 +76,7 @@ export class TurnManager {
     const dealerId = this.getDealerId()
     const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
 
-    for (let i = 1; i <= seats.length; i++) {
+    for (let i = 0; i <= seats.length; i++) {
       const nextIndex = (dealerIndex + i) % seats.length
       const playerId = seats[nextIndex].playerId
       const player = this.playerRepository.getPlayer(playerId)
@@ -107,5 +99,8 @@ export class TurnManager {
     const newDealerId = seats[newDealerIndex].playerId
     console.log('next dealer id:', newDealerId)
     this.state.dealerId = newDealerId
+  }
+  resetCurrentTurn(): void {
+    this.state.currentTurn = ''
   }
 }

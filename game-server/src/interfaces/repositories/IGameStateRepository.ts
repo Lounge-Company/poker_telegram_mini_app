@@ -13,4 +13,5 @@ export interface IGameStateRepository {
   setCurrentTurn(turn: string): void
   getCommunityCards(): Card[]
   setCommunityCards(cards: Card[]): void
+  addCommunityCard(card: Card): void
 }

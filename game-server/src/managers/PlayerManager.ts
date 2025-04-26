@@ -4,7 +4,6 @@ import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
 import { ISeatRepository } from '../interfaces/repositories/ISeatRepository'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
-import { GameResultMessage } from '../types/GameResultPayload'
 
 export class PlayerManager {
   constructor(
@@ -18,20 +17,34 @@ export class PlayerManager {
   ) {}
   handleCheck(playerId: string) {
     const player = this.playerRepository.getPlayer(playerId)
-    if (player && this.betRepository.getCurrentBet() === 0) {
+    const currentBet = this.betRepository.getCurrentBet()
+    if (player && player.currentBet === currentBet) {
+      console.log('handlePlayerCheck :', player.id, player.name)
       player.acted = true
       // this.playerRepository.updatePlayer(player)
     }
   }
 
   handleCall(playerId: string) {
-    //add all in check
     const player = this.playerRepository.getPlayer(playerId)
-    if (player && player.chips >= this.betRepository.getCurrentBet()) {
-      player.chips -= this.betRepository.getCurrentBet()
-      this.betRepository.setPot(this.betRepository.getCurrentBet() * 2)
-      player.acted = true
-      // this.playerRepository.updatePlayer(player)
+    if (player) {
+      const currentBet = this.betRepository.getCurrentBet()
+      const amountToCall = currentBet - player.currentBet
+
+      if (player.chips >= amountToCall) {
+        player.chips -= amountToCall
+        this.betRepository.setPot(this.betRepository.getPot() + amountToCall)
+        player.currentBet = currentBet
+        player.acted = true
+      } else {
+        // Обработка ситуации all-in
+        this.betRepository.setPot(this.betRepository.getPot() + player.chips)
+        player.currentBet += player.chips
+        this.betRepository.setCurrentBet(player.currentBet)
+        player.chips = 0
+        player.isAllIn = true
+        player.acted = true
+      }
     }
   }
 
@@ -46,15 +59,28 @@ export class PlayerManager {
   }
   handleBet(playerId: string, amount: number) {
     const player = this.playerRepository.getPlayer(playerId)
+
     if (player && player.chips >= amount) {
       player.chips -= amount
-      this.betRepository.setPot(amount)
-      this.betRepository.setCurrentBet(amount)
+      player.currentBet += amount
+      const currentBet = this.betRepository.getCurrentBet()
+      this.betRepository.setPot(this.betRepository.getPot() + amount)
+      if (player.currentBet > currentBet) {
+        this.betRepository.setCurrentBet(player.currentBet)
+        this.resetActedPlayers()
+      }
       player.acted = true
       // this.playerRepository.updatePlayer(player)
+    } else {
+      // Обработка ситуации all-in
+      this.betRepository.setPot(this.betRepository.getPot() + player.chips)
+      player.currentBet += player.chips
+      this.betRepository.setCurrentBet(player.currentBet)
+      player.chips = 0
+      player.isAllIn = true
+      player.acted = true
     }
   }
-
   resetPlayers() {
     this.playerRepository.getAllPlayers().forEach((player) => {
       player.acted = false
@@ -64,7 +90,7 @@ export class PlayerManager {
       // this.playerRepository.updatePlayer(player)
     })
   }
-  resetPlayersBetweenRounds() {
+  resetPlayersBetweenRounds(): void {
     this.playerRepository.getAllPlayers().forEach((player) => {
       if (!player.hasFolded && !player.isAllIn) {
         console.log(`Resetting player: ${player.name}`)
@@ -80,7 +106,6 @@ export class PlayerManager {
   }
   getBlindsPositions() {
     const seats = this.seatRepository.getSeats().filter((seat) => seat.playerId)
-    console.log('blind positions:', seats)
     const dealerIndex = seats.findIndex(
       (seat) => seat.playerId === this.getDealerId()
     )
@@ -115,34 +140,30 @@ export class PlayerManager {
   }
   awardPotToWinners(winnersResult: WinnersResult) {
     // fix it for full poker implementation
-    const { winningPlayerIds, winningHand } = winnersResult
-    const totalPot = this.betRepository.getPot()
-    const splitAmount = Math.floor(totalPot / winningPlayerIds.length) // <--- fix this
-
-    const resultToSend: GameResultMessage = {
-      pot: totalPot,
-      winners: winningPlayerIds.map((playerId) => ({
-        playerId,
-        amount: splitAmount,
-        hand: winningHand,
-      })),
-    }
-
-    this.clientService.broadcastGameResult(resultToSend)
+    const { winner } = winnersResult
+    const winnerPlayer = this.playerRepository.getPlayer(winner.playerId)
+    this.clientService.broadcastGameResult(winnersResult)
+    winnerPlayer.chips += this.betRepository.getPot()
   }
-  public markPlayerAsFolded(playerId: string): void {
+  markPlayerAsFolded(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
 
     player.hasFolded = true
     player.acted = true
     this.decreaseActivePlayers()
-    console.log('Player marked as folded:', playerId)
   }
-  public markPlayerAsChecked(playerId: string): void {
+  markPlayerAsChecked(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
     player.acted = true
-    console.log('Player marked as checked:', playerId)
+  }
+  resetActedPlayers() {
+    const players = this.playerRepository.getAllPlayers()
+    players.forEach((player) => {
+      if (!player.hasFolded && !player.isAllIn) {
+        player.acted = false
+      }
+    })
   }
 }
