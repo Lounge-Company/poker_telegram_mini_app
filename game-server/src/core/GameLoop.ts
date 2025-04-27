@@ -214,6 +214,7 @@ export class GameLoop {
       console.log('Only one player left. Active players:', activePlayers)
       console.log('===================================================')
       this.playerManager.findLastActivePlayerAndAwardPot()
+      return
     } else if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
       this.cardDealer.dealRemainingCommunityCards(this.deck)
     }

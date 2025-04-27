@@ -11,4 +11,10 @@ export class SeatRepository implements ISeatRepository {
   getIndexOfPlayer(playerId: string): number {
     return this.state.seats.findIndex((seat) => seat.playerId === playerId)
   }
+  clearSeat(playerId: string): void {
+    const seatIndex = this.getIndexOfPlayer(playerId)
+    if (seatIndex !== -1) {
+      this.state.seats[seatIndex].playerId = ''
+    }
+  }
 }
