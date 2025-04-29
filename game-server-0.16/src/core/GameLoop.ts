@@ -25,6 +25,7 @@ import { hasOnlyOneActivePlayer } from '../utils/game/hasOnlyOneActivePlayer'
 import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
 import { GameEvaluator } from '../utils/GameEvaluator'
 import { PlayerCards } from '../types/PlayerCards'
+import { SeatManager } from '../managers/SeatManager'
 
 export class GameLoop {
   private playerCards: PlayerCards = new Map()
@@ -40,6 +41,7 @@ export class GameLoop {
   roundManager: RoundManager
   playerManager: PlayerManager
   betManager: BetManager
+  seatManager: SeatManager
 
   // Repositories
   gameStateRepository: GameStateRepository
@@ -114,6 +116,11 @@ export class GameLoop {
       (dealerId) => this.gameStateRepository.setDealerId(dealerId),
       this.gameLoop.bind(this)
     )
+    this.seatManager = new SeatManager(
+      this.state,
+      this.playerRepository,
+      this.seatRepository
+    )
   }
   private initializeServices() {
     this.cardDealer = new CardDealer(
@@ -151,6 +158,11 @@ export class GameLoop {
       )
     ) {
       console.log('Game loop running...')
+      this.seatManager.freeEmptySeats()
+      this.roundManager.resetRound()
+      this.deckManager.resetDeck()
+      this.playerManager.resetPlayers()
+      this.playerCards = new Map<string, Card[]>()
 
       const curentPlayers = this.playerRepository.getPlayerCount()
       this.gameStateRepository.setActivePlayers(curentPlayers)
@@ -176,11 +188,7 @@ export class GameLoop {
       await this.playRounds()
 
       this.turnManager.moveDealerPosition()
-      this.playerManager.resetPlayers()
 
-      this.roundManager.resetRound()
-      this.deckManager.resetDeck()
-      this.playerCards = new Map<string, Card[]>()
       await new Promise((resolve) =>
         setTimeout(resolve, this.state.GAME_LOOP_DELAY)
       )

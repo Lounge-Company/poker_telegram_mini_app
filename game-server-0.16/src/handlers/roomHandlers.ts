@@ -9,7 +9,7 @@ import { canStartGame } from '../utils/game/canStart'
 import { MyRoom } from '../rooms/MyRoom'
 import {
   onMessage,
-  registerHandlers,
+  registerHandlers
 } from '../utils/decorators/registerHandler.decorator'
 
 export class RoomHandlers {
