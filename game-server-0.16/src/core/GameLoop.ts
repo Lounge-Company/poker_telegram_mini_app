@@ -181,10 +181,13 @@ export class GameLoop {
       this.roundManager.resetRound()
       this.deckManager.resetDeck()
       this.playerCards = new Map<string, Card[]>()
-      await new Promise((resolve) => setTimeout(resolve, this.state.GAME_LOOP_DELAY))
+      await new Promise((resolve) =>
+        setTimeout(resolve, this.state.GAME_LOOP_DELAY)
+      )
     }
     console.log('Game loop stopped.')
   }
+
   async playRounds() {
     // Continue rounds while game is in progress
     while (this.roundManager.shouldContinueRounds()) {
@@ -210,14 +213,12 @@ export class GameLoop {
 
     // Handle end game scenarios
     if (hasOnlyOneActivePlayer(activePlayers)) {
-      console.log('===================================================')
-      console.log('Only one player left. Active players:', activePlayers)
-      console.log('===================================================')
       this.playerManager.findLastActivePlayerAndAwardPot()
-    } else if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
-      this.cardDealer.dealRemainingCommunityCards(this.deck)
     }
 
+    if (isAllPlayersAllIn(allInPlayersCount, activePlayers)) {
+      this.cardDealer.dealRemainingCommunityCards(this.deck)
+    }
     // Determine winners and award pot
     const winnersResult = this.gameEvaluator.findWinners(
       this.playerCards,
@@ -225,6 +226,7 @@ export class GameLoop {
     )
     this.playerManager.awardPotToWinners(winnersResult)
   }
+
   async playBettingRound(): Promise<boolean> {
     while (
       !this.turnManager.allPlayersActed() &&

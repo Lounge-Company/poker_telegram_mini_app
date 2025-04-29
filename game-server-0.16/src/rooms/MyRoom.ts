@@ -15,7 +15,7 @@ export class MyRoom extends Room<GameState> {
   private GameHandlers: GameHandlers
 
   onCreate(options: any) {
-    this.setState(new GameState())
+    this.state = new GameState()
     this.setSeatReservationTime(60)
     this.RoomManager = new RoomManager(this.state)
     this.RoomHandlers = new RoomHandlers(this, this.RoomManager)
