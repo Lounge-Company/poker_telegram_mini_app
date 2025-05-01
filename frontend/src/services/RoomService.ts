@@ -6,6 +6,7 @@ class RoomService {
   constructor() {
     this.client = new Client("ws://localhost:2567");
   }
+  //
 
   async init(roomName: string): Promise<void> {
     try {

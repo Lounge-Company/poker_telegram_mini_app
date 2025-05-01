@@ -1,4 +1,4 @@
-import { Button, Input } from "antd";
+import { Input } from "antd";
 import { useState } from "react";
 
 interface MessageInputProps {
@@ -23,7 +23,7 @@ const MessageInput = ({ onSendMessage }: MessageInputProps) => {
         style={{
           background: "#262626", // Тёмный фон поля ввода
           color: "#ffffff", // Белый текст
-          borderColor: "#3a3a3a"
+          borderColor: "#3a3a3a",
         }}
       />
       {/* <Button
