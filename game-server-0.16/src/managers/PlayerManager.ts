@@ -2,11 +2,17 @@ import { WinnersResult } from '../types/winnerResult'
 import { IBetRepository } from '../interfaces/repositories/IBetRepository'
 import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
 import { ISeatRepository } from '../interfaces/repositories/ISeatRepository'
-import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
+import { RoomManager } from './RoomManager'
+import { canStartGame } from '../utils/game/canStart'
+import { GameEventEmitter } from '../events/gameEventEmitter'
+import { GameStateRepository } from '../repositories/GameState.repository'
 
 export class PlayerManager {
+  eventEmitter: GameEventEmitter
   constructor(
+    private roomManager: RoomManager,
+    private gameStateRepository: GameStateRepository,
     private playerRepository: IPlayerRepository,
     private betRepository: IBetRepository,
     private seatRepository: ISeatRepository,
@@ -14,7 +20,53 @@ export class PlayerManager {
     private getActivePlayers: () => number,
     private getDealerId: () => string,
     private clientService: ClientService
-  ) {}
+  ) {
+    this.eventEmitter = GameEventEmitter.getInstance()
+  }
+  handleJoin(playerId: string, seatIndex: number, name: string) {
+    console.log('handleJoin', playerId, seatIndex, name)
+    const success = this.roomManager.proccesJoinGame(playerId, name, seatIndex)
+    if (!success) {
+      this.clientService.sendSystemMessage(
+        playerId,
+        `seat ${seatIndex + 1} is already taken`
+      )
+      return
+    }
+  }
+  handleLeave(playerId: string) {
+    const seatNumber = this.seatRepository
+      .getSeats()
+      .find((s: { playerId: any }) => s.playerId === playerId)?.index
+
+    const success = this.roomManager.handlePlayerLeaveGame(playerId)
+
+    if (success) {
+      this.clientService.broadcastSystemMessage(
+        `Player ${playerId} left seat ${seatNumber + 1}`
+      )
+    }
+  }
+  handleReady(playerId: string) {
+    console.log('handleReady', playerId)
+    const player = this.playerRepository.getPlayer(playerId)
+    if (!player) return
+    if (player.ready) return
+    player.ready = true
+    this.gameStateRepository.setReadyPlayers(
+      this.gameStateRepository.getReadyPlayers() + 1
+    )
+    console.log(
+      'can start game:',
+      canStartGame(this.gameStateRepository.getGameState())
+    )
+    if (canStartGame(this.gameStateRepository.getGameState())) {
+      console.log('test')
+      this.gameStateRepository.setReadyPlayers(0)
+      this.eventEmitter.emit('gameStart')
+      this.clientService.broadcastSystemMessage('Game started!')
+    }
+  }
   handleCheck(playerId: string) {
     const player = this.playerRepository.getPlayer(playerId)
     const currentBet = this.betRepository.getCurrentBet()
@@ -115,7 +167,7 @@ export class PlayerManager {
 
     return {
       smallBlind: seats[smallBlindIndex]?.playerId,
-      bigBlind: seats[bigBlindIndex]?.playerId,
+      bigBlind: seats[bigBlindIndex]?.playerId
     }
   }
   addChips(playerId: string, amount: number) {
@@ -165,5 +217,10 @@ export class PlayerManager {
         player.acted = false
       }
     })
+  }
+  movePlayerToSpec(playerId: string): void {
+    const player = this.playerRepository.getPlayer(playerId)
+    if (player) {
+    }
   }
 }

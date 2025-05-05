@@ -1,4 +1,4 @@
-import { PlayerRepository } from '../repositories/player.repository'
+import { PlayerRepository } from '../repositories/Player.repository'
 import { SeatRepository } from '../repositories/Seat.repository'
 import { GameState } from '../rooms/schema/GameState'
 import { Seat } from '../rooms/schema/Seat'
@@ -7,11 +7,7 @@ export class RoomManager {
   constructor(private state: GameState) {}
   handleJoinRoom(playerId: string): void {}
 
-  handlePlayerJoinToGame(
-    playerId: string,
-    name: string,
-    seatNumber: number
-  ): boolean {
+  proccesJoinGame(playerId: string, name: string, seatNumber: number): boolean {
     const spectator = this.state.spectators.get(playerId)
     if (!spectator) {
       return false

@@ -1,12 +1,14 @@
 import { ArraySchema } from '@colyseus/schema'
-import { PlayerRepository } from '../repositories/player.repository'
+import { PlayerRepository } from '../repositories/Player.repository'
 import { SeatRepository } from '../repositories/Seat.repository'
 import { Seat } from '../rooms/schema/Seat'
 import { GameState } from '../rooms/schema/GameState'
+import { PlayerManager } from './PlayerManager'
 
 export class SeatManager {
   constructor(
     private state: GameState,
+    private playerManager: PlayerManager,
     private playerRepository: PlayerRepository,
     private seatRepository: SeatRepository
   ) {
@@ -24,6 +26,7 @@ export class SeatManager {
     this.playerRepository.getAllPlayers().forEach((player) => {
       if (player.chips <= 0) {
         this.cleanSeatByPlayerId(player.id)
+        this.playerManager.movePlayerToSpec(player.id)
       }
     })
   }

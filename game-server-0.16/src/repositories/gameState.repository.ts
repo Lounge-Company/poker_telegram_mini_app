@@ -6,6 +6,10 @@ import { RoundType } from '../types/GameTypes'
 export class GameStateRepository implements IGameStateRepository {
   constructor(private state: GameState) {}
 
+  getGameState(): GameState {
+    return this.state
+  }
+
   getGamePhase(): RoundType {
     return this.state.gamePhase
   }
@@ -57,5 +61,11 @@ export class GameStateRepository implements IGameStateRepository {
   }
   addCommunityCard(card: Card): void {
     this.state.communityCards.push(card)
+  }
+  getReadyPlayers(): number {
+    return this.state.readyPlayers
+  }
+  setReadyPlayers(count: number): void {
+    this.state.readyPlayers = count
   }
 }
