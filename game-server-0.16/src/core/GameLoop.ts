@@ -1,31 +1,44 @@
-import { GameManager } from '../managers/GameManager'
-import { GameState } from '../rooms/schema/GameState'
-import { TurnManager } from '../managers/TurnManager'
-import { Card } from '../rooms/schema/Card'
-import { DeckManager } from '../managers/DeckManager'
+// States
 import { MyRoom } from '../rooms/MyRoom'
+import { GameState } from '../rooms/schema/GameState'
+import { PlayerState } from '../rooms/schema/PlayerState'
+import { Card } from '../rooms/schema/Card'
+
+// Managers
+import { TurnManager } from '../managers/TurnManager'
+import { GameManager } from '../managers/GameManager'
 import { RoundManager } from '../managers/RoundManager'
 import { PlayerManager } from '../managers/PlayerManager'
-import { PlayerState } from '../rooms/schema/PlayerState'
-import { GameEventEmitter } from '../events/gameEventEmitter'
-import { PlayerRepository } from '../repositories/player.repository'
-import { CardDealer } from '../utils/CardDealer'
-import { ClientService } from '../services/clientService'
-import { EventSubscriber } from '../events/eventSubscriber'
-import { createGameEventHandlers } from '../events/gameEventHandlers'
-import { GameEventTypes } from '../types/GameEventsTypes'
-import { PlayerActionService } from '../services/PlayerActionService'
-import { GameStateRepository } from '../repositories/gameState.repository'
 import { BetManager } from '../managers/BetManager'
+import { DeckManager } from '../managers/DeckManager'
+import { SeatManager } from '../managers/SeatManager'
+
+// Repositories
+import { GameStateRepository } from '../repositories/GameState.repository'
+import { PlayerRepository } from '../repositories/Player.repository'
 import { BetRepository } from '../repositories/Bet.repository'
 import { SeatRepository } from '../repositories/Seat.repository'
 import { TurnRepository } from '../repositories/turn.repository'
+
+// Services
+import { ClientService } from '../services/clientService'
+import { PlayerActionService } from '../services/PlayerActionService'
+
+// Events
+import { GameEventEmitter } from '../events/gameEventEmitter'
+import { createGameEventHandlers } from '../events/gameEventHandlers'
+import { EventSubscriber } from '../events/eventSubscriber'
+
+// Types
+import { GameEventTypes } from '../types/GameEventsTypes'
+import { PlayerCards } from '../types/PlayerCards'
+// Utils
+import { CardDealer } from '../utils/CardDealer'
+import { GameEvaluator } from '../utils/GameEvaluator'
+import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
 import { shouldContinueGame } from '../utils/game/shouldContinueGame'
 import { hasOnlyOneActivePlayer } from '../utils/game/hasOnlyOneActivePlayer'
-import { isAllPlayersAllIn } from '../utils/game/isAllPlayersAllIn'
-import { GameEvaluator } from '../utils/GameEvaluator'
-import { PlayerCards } from '../types/PlayerCards'
-import { SeatManager } from '../managers/SeatManager'
+import { RoomManager } from '../managers/RoomManager'
 
 export class GameLoop {
   private playerCards: PlayerCards = new Map()
@@ -42,7 +55,7 @@ export class GameLoop {
   playerManager: PlayerManager
   betManager: BetManager
   seatManager: SeatManager
-
+  RoomManager: RoomManager
   // Repositories
   gameStateRepository: GameStateRepository
   seatRepository: SeatRepository
@@ -78,6 +91,7 @@ export class GameLoop {
     this.turnRepository = new TurnRepository(this.state)
   }
   private initializeManagers() {
+    this.RoomManager = new RoomManager(this.state)
     this.deckManager = new DeckManager(this.deck)
     this.turnManager = new TurnManager(
       this.state,
@@ -92,6 +106,8 @@ export class GameLoop {
     )
 
     this.playerManager = new PlayerManager(
+      this.RoomManager,
+      this.gameStateRepository,
       this.playerRepository,
       this.betRepository,
       this.seatRepository,
@@ -118,6 +134,7 @@ export class GameLoop {
     )
     this.seatManager = new SeatManager(
       this.state,
+      this.playerManager,
       this.playerRepository,
       this.seatRepository
     )

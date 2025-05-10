@@ -133,7 +133,6 @@ export class PlayerManager {
         console.log(
           `adding chips to ${player.name}, pot: ${this.betRepository.getPot()}`
         )
-        this.betRepository.setPot(0)
         return player.id
       }
     }
@@ -141,6 +140,7 @@ export class PlayerManager {
   awardPotToWinners(winnersResult: WinnersResult) {
     // fix it for full poker implementation
     const { winner } = winnersResult
+    console.log('winner', winner)
     const winnerPlayer = this.playerRepository.getPlayer(winner.playerId)
     this.clientService.broadcastGameResult(winnersResult)
     winnerPlayer.chips += this.betRepository.getPot()
@@ -163,6 +163,14 @@ export class PlayerManager {
     players.forEach((player) => {
       if (!player.hasFolded && !player.isAllIn) {
         player.acted = false
+      }
+    })
+  }
+  dropOutPlayers() {
+    const players = this.playerRepository.getAllPlayers()
+    players.forEach((player) => {
+      if (player.chips <= 0) {
+        this.seatRepository.clearSeat(player.id)
       }
     })
   }

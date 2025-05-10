@@ -22,9 +22,14 @@ export class CardDealer {
     for (const [id, player] of players) {
       const cards: Card[] = [
         this.deckManager.drawCard(deck),
-        this.deckManager.drawCard(deck),
+        this.deckManager.drawCard(deck)
+      ]
+      const placeholderCards = [
+        new Card().assign({ suit: 'back', rank: 'back' }),
+        new Card().assign({ suit: 'back', rank: 'back' })
       ]
       if (player) {
+        player.openCards = placeholderCards
         this.clientService.sendPlayerCards(id, cards)
       }
       playerCards.set(id, cards)

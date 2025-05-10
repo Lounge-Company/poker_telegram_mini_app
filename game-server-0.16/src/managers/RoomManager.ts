@@ -1,4 +1,4 @@
-import { PlayerRepository } from '../repositories/player.repository'
+import { PlayerRepository } from '../repositories/Player.repository'
 import { SeatRepository } from '../repositories/Seat.repository'
 import { GameState } from '../rooms/schema/GameState'
 import { Seat } from '../rooms/schema/Seat'
@@ -7,11 +7,7 @@ export class RoomManager {
   constructor(private state: GameState) {}
   handleJoinRoom(playerId: string): void {}
 
-  handlePlayerJoinToGame(
-    playerId: string,
-    name: string,
-    seatNumber: number
-  ): boolean {
+  proccesJoinGame(playerId: string, name: string, seatNumber: number): boolean {
     const spectator = this.state.spectators.get(playerId)
     if (!spectator) {
       return false
@@ -33,7 +29,6 @@ export class RoomManager {
       this.state.players.set(playerId, clonedPlayer)
       this.state.spectators.delete(playerId)
     } else {
-      clonedPlayer.chips = 0
       clonedPlayer.ready = false
       clonedPlayer.hasFolded = true
       clonedPlayer.isAllIn = true
@@ -43,7 +38,7 @@ export class RoomManager {
 
     return true
   }
-  handlePlayerLeaveGame(playerId: string): boolean {
+  proccesLeaveGame(playerId: string): boolean {
     const player = this.state.players.get(playerId)
     if (!player) return false
     const clonedPlayer = player.clone()
