@@ -38,4 +38,13 @@ export class SeatManager {
       this.state.seats.push(seat)
     }
   }
+  initializeLateJoinedPlayers(): void {
+    this.playerRepository.getAllPlayers().forEach((player) => {
+      if (!player.ready) {
+        player.ready = true
+        player.hasFolded = true
+        player.isAllIn = true
+      }
+    })
+  }
 }

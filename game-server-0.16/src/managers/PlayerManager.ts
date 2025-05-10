@@ -39,7 +39,7 @@ export class PlayerManager {
       .getSeats()
       .find((s: { playerId: any }) => s.playerId === playerId)?.index
 
-    const success = this.roomManager.handlePlayerLeaveGame(playerId)
+    const success = this.roomManager.proccesLeaveGame(playerId)
 
     if (success) {
       this.clientService.broadcastSystemMessage(
@@ -49,19 +49,19 @@ export class PlayerManager {
   }
   handleReady(playerId: string) {
     console.log('handleReady', playerId)
+
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
     if (player.ready) return
+
     player.ready = true
-    this.gameStateRepository.setReadyPlayers(
-      this.gameStateRepository.getReadyPlayers() + 1
-    )
-    console.log(
-      'can start game:',
-      canStartGame(this.gameStateRepository.getGameState())
-    )
-    if (canStartGame(this.gameStateRepository.getGameState())) {
-      console.log('test')
+    const readyPlayers = this.gameStateRepository.getReadyPlayers()
+    this.gameStateRepository.setReadyPlayers(readyPlayers + 1)
+
+    const gameState = this.gameStateRepository.getGameState()
+    const canStart = canStartGame(gameState)
+
+    if (canStart) {
       this.gameStateRepository.setReadyPlayers(0)
       this.eventEmitter.emit('gameStart')
       this.clientService.broadcastSystemMessage('Game started!')

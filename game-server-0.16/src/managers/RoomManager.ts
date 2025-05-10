@@ -29,7 +29,6 @@ export class RoomManager {
       this.state.players.set(playerId, clonedPlayer)
       this.state.spectators.delete(playerId)
     } else {
-      clonedPlayer.chips = 0
       clonedPlayer.ready = false
       clonedPlayer.hasFolded = true
       clonedPlayer.isAllIn = true
@@ -39,7 +38,7 @@ export class RoomManager {
 
     return true
   }
-  handlePlayerLeaveGame(playerId: string): boolean {
+  proccesLeaveGame(playerId: string): boolean {
     const player = this.state.players.get(playerId)
     if (!player) return false
     const clonedPlayer = player.clone()
