@@ -18,7 +18,7 @@ import { GameStateRepository } from '../repositories/GameState.repository'
 import { PlayerRepository } from '../repositories/Player.repository'
 import { BetRepository } from '../repositories/Bet.repository'
 import { SeatRepository } from '../repositories/Seat.repository'
-import { TurnRepository } from '../repositories/turn.repository'
+import { TurnRepository } from '../repositories/Turn.repository'
 
 // Services
 import { ClientService } from '../services/clientService'
