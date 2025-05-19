@@ -1,9 +1,14 @@
+import { IGameStateRepository } from '../interfaces/repositories/IGameStateRepository'
 import { Card } from '../rooms/schema/Card'
 import { GameState } from '../rooms/schema/GameState'
 import { RoundType } from '../types/GameTypes'
 
-export class GameStateRepository implements GameStateRepository {
+export class GameStateRepository implements IGameStateRepository {
   constructor(private state: GameState) {}
+
+  getGameState(): GameState {
+    return this.state
+  }
 
   getGamePhase(): RoundType {
     return this.state.gamePhase
@@ -50,5 +55,17 @@ export class GameStateRepository implements GameStateRepository {
   }
   getCommunityCards(): Card[] {
     return this.state.communityCards
+  }
+  setCommunityCards(cards: Card[]): void {
+    this.state.communityCards = cards
+  }
+  addCommunityCard(card: Card): void {
+    this.state.communityCards.push(card)
+  }
+  getReadyPlayers(): number {
+    return this.state.readyPlayers
+  }
+  setReadyPlayers(count: number): void {
+    this.state.readyPlayers = count
   }
 }

@@ -1,0 +1,41 @@
+version: '3.8'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - '3000:3000'
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    restart: unless-stopped
+    networks:
+      - poker_network
+
+  game-server:
+    build:
+      context: ./game-server
+      dockerfile: Dockerfile
+    ports:
+      - '2567:2567'
+    volumes:
+      - ./game-server:/app
+      - /app/node_modules
+    environment:
+      - NODE_ENV=development
+    healthcheck:
+      test: ['CMD', 'curl', '-f', 'http://localhost:2567/ping']
+      interval: 10s
+      timeout: 3s
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - poker_network
+
+networks:
+  poker_network:
+    driver: bridge

@@ -1,8 +1,17 @@
-import { MyRoom } from '../../rooms/MyRoom'
+import { GameState } from '../../rooms/schema/GameState'
 
-export function canStartGame(room: MyRoom): boolean {
+export function canStartGame(state: GameState): boolean {
+  console.log('canStartGame')
+  console.log(
+    'readyPlayers:',
+    state.readyPlayers,
+    'players size:',
+    state.players.size,
+    'minPlayers:',
+    state.MIN_PLAYERS
+  )
   return (
-    room.state.readyPlayers === room.state.players.size &&
-    room.state.players.size >= room.state.MIN_PLAYERS
+    state.readyPlayers === state.players.size &&
+    state.players.size >= state.MIN_PLAYERS
   )
 }

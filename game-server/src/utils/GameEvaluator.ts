@@ -2,49 +2,51 @@ import { Hand, SolvedHand } from 'pokersolver'
 import { Card } from '../rooms/schema/Card'
 import { WinnersResult } from '../types/winnerResult'
 import { IGameEvaluator } from '../interfaces/IGameEvaluator'
-import { CompareHandsResult } from '../types/compareHandsResult'
+import { PlayerHandEvaluation } from '../types/PlayerHandEvaluation'
+import { PlayerCards } from '../types/PlayerCards'
 
 export class GameEvaluator implements IGameEvaluator {
   convertToPokerSolverFormat(cards: Card[]): string[] {
     return cards.map((card) => `${card.rank}${card.suit}`)
   }
 
-  evaluateHand(playerCards: Card[], communityCards: Card[]): SolvedHand {
-    const allCards = [...playerCards, ...communityCards]
-    const formattedCards = this.convertToPokerSolverFormat(allCards)
-    return Hand.solve(formattedCards)
-  }
-
-  findWinners(hands: Map<string, Card[]>, communityCards: Card[]): WinnersResult {
-    const solvedHands: SolvedHand[] = []
-    const playerIds: string[] = []
-
-    hands.forEach((cards, playerId) => {
-      const hand = this.evaluateHand(cards, communityCards)
-      solvedHands.push(hand)
-      playerIds.push(playerId)
-    })
-
-    const winners = Hand.winners(solvedHands)
-    return {
-      winningPlayerIds: winners.map((hand) => playerIds[solvedHands.indexOf(hand)]),
-      winningHand: winners[0].descr,
+  findWinners(hands: PlayerCards, communityCards: Card[]): WinnersResult {
+    const evaluatedHands = [] as PlayerHandEvaluation[]
+    const result: WinnersResult = {
+      winner: { playerId: '', solvedHand: {} as SolvedHand },
+      otherHands: [] as PlayerHandEvaluation[],
     }
-  }
 
-  compareHands(
-    hand1: Card[],
-    hand2: Card[],
-    communityCards: Card[]
-  ): CompareHandsResult {
-    const solvedHand1: SolvedHand = this.evaluateHand(hand1, communityCards)
-    const solvedHand2: SolvedHand = this.evaluateHand(hand2, communityCards)
-
-    const winner = Hand.winners([solvedHand1, solvedHand2])
-    return {
-      winner: winner[0] === solvedHand1 ? 1 : winner[0] === solvedHand2 ? 2 : 0,
-      hand1Description: solvedHand1.descr,
-      hand2Description: solvedHand2.descr,
+    // Evaluate each player's hand
+    for (const [playerId, cards] of hands) {
+      const concatedCards = [
+        ...this.convertToPokerSolverFormat(cards),
+        ...communityCards.map((card) => `${card.rank}${card.suit}`),
+      ]
+      const solvedHand = Hand.solve(concatedCards)
+      evaluatedHands.push({ playerId, solvedHand })
     }
+
+    // Find winners using pokersolver
+    const winningHands = Hand.winners(evaluatedHands.map((hand) => hand.solvedHand))
+
+    // Find the winning player
+    const winningHand = evaluatedHands.find(
+      (hand) => hand.solvedHand === winningHands[0]
+    )
+
+    if (winningHand) {
+      result.winner = {
+        playerId: winningHand.playerId,
+        solvedHand: winningHand.solvedHand,
+      }
+
+      // Add other hands to results
+      result.otherHands = evaluatedHands.filter(
+        (hand) => hand.playerId !== winningHand.playerId
+      )
+    }
+
+    return result
   }
 }

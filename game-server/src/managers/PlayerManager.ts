@@ -2,12 +2,17 @@ import { WinnersResult } from '../types/winnerResult'
 import { IBetRepository } from '../interfaces/repositories/IBetRepository'
 import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
 import { ISeatRepository } from '../interfaces/repositories/ISeatRepository'
-import { PlayerState } from '../rooms/schema/PlayerState'
 import { ClientService } from '../services/clientService'
-import { GameResultMessage } from '../types/GameResultPayload'
+import { RoomManager } from './RoomManager'
+import { canStartGame } from '../utils/game/canStart'
+import { GameEventEmitter } from '../events/gameEventEmitter'
+import { GameStateRepository } from '../repositories/GameState.repository'
 
 export class PlayerManager {
+  eventEmitter: GameEventEmitter
   constructor(
+    private roomManager: RoomManager,
+    private gameStateRepository: GameStateRepository,
     private playerRepository: IPlayerRepository,
     private betRepository: IBetRepository,
     private seatRepository: ISeatRepository,
@@ -15,11 +20,58 @@ export class PlayerManager {
     private getActivePlayers: () => number,
     private getDealerId: () => string,
     private clientService: ClientService
-  ) {}
+  ) {
+    this.eventEmitter = GameEventEmitter.getInstance()
+  }
+  handleJoin(playerId: string, seatIndex: number, name: string) {
+    console.log('handleJoin', playerId, seatIndex, name)
+    const success = this.roomManager.proccesJoinGame(playerId, name, seatIndex)
+    if (!success) {
+      this.clientService.sendSystemMessage(
+        playerId,
+        `seat ${seatIndex + 1} is already taken`
+      )
+      return
+    }
+  }
+  handleLeave(playerId: string) {
+    const seatNumber = this.seatRepository
+      .getSeats()
+      .find((s: { playerId: any }) => s.playerId === playerId)?.index
+
+    const success = this.roomManager.proccesLeaveGame(playerId)
+
+    if (success) {
+      this.clientService.broadcastSystemMessage(
+        `Player ${playerId} left seat ${seatNumber + 1}`
+      )
+    }
+  }
+  handleReady(playerId: string) {
+    console.log('handleReady', playerId)
+
+    const player = this.playerRepository.getPlayer(playerId)
+    if (!player) return
+    if (player.ready) return
+
+    player.ready = true
+    const readyPlayers = this.gameStateRepository.getReadyPlayers()
+    this.gameStateRepository.setReadyPlayers(readyPlayers + 1)
+
+    const gameState = this.gameStateRepository.getGameState()
+    const canStart = canStartGame(gameState)
+
+    if (canStart) {
+      this.gameStateRepository.setReadyPlayers(0)
+      this.eventEmitter.emit('gameStart')
+      this.clientService.broadcastSystemMessage('Game started!')
+    }
+  }
   handleCheck(playerId: string) {
     const player = this.playerRepository.getPlayer(playerId)
-    if (player && this.betRepository.getCurrentBet() === 0) {
-      console.log(`Player ${player.name} checked.`)
+    const currentBet = this.betRepository.getCurrentBet()
+    if (player && player.currentBet === currentBet) {
+      console.log('handlePlayerCheck :', player.id, player.name)
       player.acted = true
       // this.playerRepository.updatePlayer(player)
     }
@@ -27,11 +79,24 @@ export class PlayerManager {
 
   handleCall(playerId: string) {
     const player = this.playerRepository.getPlayer(playerId)
-    if (player && player.chips >= this.betRepository.getCurrentBet()) {
-      player.chips -= this.betRepository.getCurrentBet()
-      this.betRepository.setPot(player.chips)
-      player.acted = true
-      // this.playerRepository.updatePlayer(player)
+    if (player) {
+      const currentBet = this.betRepository.getCurrentBet()
+      const amountToCall = currentBet - player.currentBet
+
+      if (player.chips >= amountToCall) {
+        player.chips -= amountToCall
+        this.betRepository.setPot(this.betRepository.getPot() + amountToCall)
+        player.currentBet = currentBet
+        player.acted = true
+      } else {
+        // Обработка ситуации all-in
+        this.betRepository.setPot(this.betRepository.getPot() + player.chips)
+        player.currentBet += player.chips
+        this.betRepository.setCurrentBet(player.currentBet)
+        player.chips = 0
+        player.isAllIn = true
+        player.acted = true
+      }
     }
   }
 
@@ -46,15 +111,28 @@ export class PlayerManager {
   }
   handleBet(playerId: string, amount: number) {
     const player = this.playerRepository.getPlayer(playerId)
+
     if (player && player.chips >= amount) {
       player.chips -= amount
-      this.betRepository.setPot(amount)
-      this.betRepository.setCurrentBet(amount)
+      player.currentBet += amount
+      const currentBet = this.betRepository.getCurrentBet()
+      this.betRepository.setPot(this.betRepository.getPot() + amount)
+      if (player.currentBet > currentBet) {
+        this.betRepository.setCurrentBet(player.currentBet)
+        this.resetActedPlayers()
+      }
       player.acted = true
       // this.playerRepository.updatePlayer(player)
+    } else {
+      // Обработка ситуации all-in
+      this.betRepository.setPot(this.betRepository.getPot() + player.chips)
+      player.currentBet += player.chips
+      this.betRepository.setCurrentBet(player.currentBet)
+      player.chips = 0
+      player.isAllIn = true
+      player.acted = true
     }
   }
-
   resetPlayers() {
     this.playerRepository.getAllPlayers().forEach((player) => {
       player.acted = false
@@ -64,7 +142,7 @@ export class PlayerManager {
       // this.playerRepository.updatePlayer(player)
     })
   }
-  resetPlayersBetweenRounds() {
+  resetPlayersBetweenRounds(): void {
     this.playerRepository.getAllPlayers().forEach((player) => {
       if (!player.hasFolded && !player.isAllIn) {
         console.log(`Resetting player: ${player.name}`)
@@ -80,7 +158,6 @@ export class PlayerManager {
   }
   getBlindsPositions() {
     const seats = this.seatRepository.getSeats().filter((seat) => seat.playerId)
-    console.log('blind positions:', seats)
     const dealerIndex = seats.findIndex(
       (seat) => seat.playerId === this.getDealerId()
     )
@@ -90,7 +167,7 @@ export class PlayerManager {
 
     return {
       smallBlind: seats[smallBlindIndex]?.playerId,
-      bigBlind: seats[bigBlindIndex]?.playerId,
+      bigBlind: seats[bigBlindIndex]?.playerId
     }
   }
   addChips(playerId: string, amount: number) {
@@ -115,34 +192,35 @@ export class PlayerManager {
   }
   awardPotToWinners(winnersResult: WinnersResult) {
     // fix it for full poker implementation
-    const { winningPlayerIds, winningHand } = winnersResult
-    const totalPot = this.betRepository.getPot()
-    const splitAmount = Math.floor(totalPot / winningPlayerIds.length) // <--- fix this
-
-    const resultToSend: GameResultMessage = {
-      pot: totalPot,
-      winners: winningPlayerIds.map((playerId) => ({
-        playerId,
-        amount: splitAmount,
-        hand: winningHand,
-      })),
-    }
-
-    this.clientService.broadcastGameResult(resultToSend)
+    const { winner } = winnersResult
+    const winnerPlayer = this.playerRepository.getPlayer(winner.playerId)
+    this.clientService.broadcastGameResult(winnersResult)
+    winnerPlayer.chips += this.betRepository.getPot()
   }
-  public markPlayerAsFolded(playerId: string): void {
+  markPlayerAsFolded(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
 
     player.hasFolded = true
     player.acted = true
     this.decreaseActivePlayers()
-    console.log('Player marked as folded:', playerId)
   }
-  public markPlayerAsChecked(playerId: string): void {
+  markPlayerAsChecked(playerId: string): void {
     const player = this.playerRepository.getPlayer(playerId)
     if (!player) return
     player.acted = true
-    console.log('Player marked as checked:', playerId)
+  }
+  resetActedPlayers() {
+    const players = this.playerRepository.getAllPlayers()
+    players.forEach((player) => {
+      if (!player.hasFolded && !player.isAllIn) {
+        player.acted = false
+      }
+    })
+  }
+  movePlayerToSpec(playerId: string): void {
+    const player = this.playerRepository.getPlayer(playerId)
+    if (player) {
+    }
   }
 }

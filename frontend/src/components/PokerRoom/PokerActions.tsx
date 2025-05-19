@@ -4,6 +4,7 @@ import Button from "./Button";
 
 type PokerActionsProps = {
   room: Room | null;
+  isGameStarted: boolean;
 };
 
 const ACTIONS = {
@@ -12,10 +13,10 @@ const ACTIONS = {
   check: "check",
   fold: "fold",
   ready: "ready",
-  unready: "unready"
+  unready: "unready",
 } as const;
 
-const PokerActions = ({ room }: PokerActionsProps) => {
+const PokerActions = ({ room, isGameStarted }: PokerActionsProps) => {
   const [isReady, setIsReady] = useState(false);
 
   const handleAction = (action: keyof typeof ACTIONS) => {
@@ -61,12 +62,14 @@ const PokerActions = ({ room }: PokerActionsProps) => {
           );
         }
       })}
-      <button
-        className={`text-white px-4 py-2 rounded cursor-pointer ${readyButtonClass}`}
-        onClick={handleReadyToggle}
-      >
-        {isReady ? "Ready" : "Not Ready"}
-      </button>
+      {!isGameStarted && (
+        <button
+          className={`text-white px-4 py-2 rounded cursor-pointer ${readyButtonClass}`}
+          onClick={handleReadyToggle}
+        >
+          {isReady ? "Ready" : "Not Ready"}
+        </button>
+      )}
     </div>
   );
 };

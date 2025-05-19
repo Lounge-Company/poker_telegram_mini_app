@@ -1,35 +1,42 @@
 import { GameState } from '../rooms/schema/GameState'
-import { Seat } from '../rooms/schema/Seat'
 
 export class RoomManager {
-  constructor(private state: GameState) {
-    this.initializeSeats()
-  }
+  constructor(private state: GameState) {}
   handleJoinRoom(playerId: string): void {}
 
-  handlePlayerJoinToGame(
-    playerId: string,
-    name: string,
-    seatNumber: number
-  ): boolean {
+  proccesJoinGame(playerId: string, name: string, seatNumber: number): boolean {
     const spectator = this.state.spectators.get(playerId)
-    if (!spectator) return false
-    const seat = this.state.seats[seatNumber]
-    if (seat && seat.playerId !== '') {
+    if (!spectator) {
       return false
     }
-    if (seat && !seat.playerId) {
-      const clonedPlayer = spectator.clone()
-      if (name) clonedPlayer.name = name
+
+    const seat = this.state.seats[seatNumber]
+    if (!seat || seat.playerId !== '') {
+      return false
+    }
+
+    const clonedPlayer = spectator.clone()
+    seat.playerId = playerId
+
+    if (name) {
+      clonedPlayer.name = name
+    }
+
+    if (!this.state.gameStarted) {
       this.state.players.set(playerId, clonedPlayer)
       this.state.spectators.delete(playerId)
-
-      seat.playerId = playerId
+    } else {
+      clonedPlayer.ready = false
+      clonedPlayer.hasFolded = true
+      clonedPlayer.isAllIn = true
+      clonedPlayer.acted = true
+      this.state.players.set(playerId, clonedPlayer)
+      this.state.spectators.delete(playerId)
     }
+
     return true
   }
-
-  handlePlayerLeaveGame(playerId: string): boolean {
+  proccesLeaveGame(playerId: string): boolean {
     const player = this.state.players.get(playerId)
     if (!player) return false
     const clonedPlayer = player.clone()
@@ -45,18 +52,5 @@ export class RoomManager {
     console.log('spectators :', this.state.spectators.keys())
     console.log('players :', this.state.players.keys())
     return true
-  }
-  isPlayerSeated(playerId: string): Seat | undefined {
-    const seat = this.state.seats.find((s) => s.playerId === playerId)
-    if (!seat) return undefined
-    return seat
-  }
-  private initializeSeats(): void {
-    for (let i = 0; i < this.state.MAX_SEATS; i++) {
-      const seat = new Seat()
-      seat.index = i
-      seat.playerId = ''
-      this.state.seats.push(seat)
-    }
   }
 }

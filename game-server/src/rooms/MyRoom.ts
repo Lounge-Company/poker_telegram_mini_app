@@ -9,31 +9,29 @@ import { GameHandlers } from '../handlers/gameHandlers'
 
 export class MyRoom extends Room<GameState> {
   private RoomHandlers: RoomHandlers
-  private RoomManager: RoomManager
   private GameLoop: GameLoop
   private ClientService: ClientService
   private GameHandlers: GameHandlers
 
   onCreate(options: any) {
-    this.setState(new GameState())
+    this.state = new GameState()
     this.setSeatReservationTime(60)
-    this.RoomManager = new RoomManager(this.state)
-    this.RoomHandlers = new RoomHandlers(this, this.RoomManager)
+    this.RoomHandlers = new RoomHandlers(this) // remove logic from handler and manager from args
     this.GameHandlers = new GameHandlers(this, this.state)
     this.ClientService = ClientService.getInstance()
     this.ClientService.setRoom(this)
     this.GameLoop = new GameLoop(this, this.ClientService)
   }
   onJoin(client: Client) {
-    // refactor this
+    // fix this
     const newPlayer = new PlayerState()
     newPlayer.id = client.sessionId
     newPlayer.name = `Player ${Math.floor(Math.random() * 1000)}`
     this.state.spectators.set(client.sessionId, newPlayer)
   }
   onLeave(client: Client) {
-    // refactor this
-    const seat = this.state.seats.find((s) => s.playerId === client.sessionId)
+    // fix this
+    const seat = this.state.seats.find((s) => s.playerId === client.sessionId) // move leave logic to manager
     if (seat) {
       seat.playerId = ''
     }

@@ -1,11 +1,12 @@
 import { SeatRepository } from '../repositories/Seat.repository'
+import { PlayerState } from '../rooms/schema/PlayerState'
 import { Seat } from '../rooms/schema/Seat'
-import { TurnManager } from './TurnManager'
+import { MapSchema } from '@colyseus/schema'
 
 export class GameManager {
   constructor(
     private seatRepository: SeatRepository,
-    private getPlayers: () => Map<string, any>,
+    private getPlayers: () => MapSchema<PlayerState>,
     private setActivePlayers: (count: number) => void,
     private setGameStarted: (status: boolean) => void,
     private setDealerId: (id: string) => void,

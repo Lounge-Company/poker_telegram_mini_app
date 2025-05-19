@@ -2,14 +2,14 @@ import { GameState } from '../rooms/schema/GameState'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { IBetRepository } from '../interfaces/repositories/IBetRepository'
 import { PlayerManager } from './PlayerManager'
-
+import { MapSchema } from '@colyseus/schema'
 export class BetManager {
   private state: GameState
 
   constructor(
     private playerManager: PlayerManager,
     private betRepository: IBetRepository,
-    private getPlayers: () => Map<string, PlayerState>,
+    private getPlayers: () => MapSchema<PlayerState>,
     private getBlinds: () => { SMALL: number; BIG: number }
   ) {}
 
@@ -36,7 +36,7 @@ export class BetManager {
     this.betRepository.setCurrentBet(BLINDS.BIG)
   }
 
-  public allBetsEqual(): boolean {
+  allBetsEqual(): boolean {
     let targetBet = this.betRepository.getCurrentBet()
 
     for (const player of this.getPlayers().values()) {
@@ -49,7 +49,7 @@ export class BetManager {
     return true
   }
 
-  public updatePot(): void {
+  updatePot(): void {
     let totalBets = 0
     for (const player of this.getPlayers().values()) {
       totalBets += player.currentBet
@@ -58,5 +58,8 @@ export class BetManager {
 
     const currentPot = this.betRepository.getPot()
     this.betRepository.setPot(currentPot + totalBets)
+  }
+  resetBet() {
+    this.betRepository.setCurrentBet(0)
   }
 }

@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 
 import { Room } from "colyseus.js";
-import { CardType, ColyseusState } from "src/types/game";
+import { CardType, ColyseusState, RoundType } from "src/types/game";
 import RoomService from "src/services/RoomService";
 
 const usePokerRoom = () => {
@@ -14,7 +14,9 @@ const usePokerRoom = () => {
     pot: 0,
     currentBet: 0,
     TURN_TIME: 20000,
-    playerCards: []
+    gamePhase: RoundType.PREFLOP,
+    playerCards: [],
+    dealerId: "",
   });
   const roomRef = useRef<Room | null>(null);
   const roomService = useRef(new RoomService());
@@ -45,19 +47,22 @@ const usePokerRoom = () => {
         players: new Map(state.players),
         seats: state.seats.map((seat) => ({
           index: seat.index,
-          playerId: seat.playerId
+          playerId: seat.playerId,
         })),
         communityCards: state.communityCards.map((card) => ({
           suit: card.suit,
-          rank: card.rank
+          rank: card.rank,
         })),
+
         currentTurn: state.currentTurn,
+        dealerId: state.dealerId,
         gameStarted: state.gameStarted,
         pot: state.pot,
         currentBet: state.currentBet,
         TURN_TIME: state.TURN_TIME,
+        gamePhase: state.gamePhase,
         // мои поля
-        playerCards: prevState.playerCards
+        playerCards: prevState.playerCards,
       }));
     };
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -68,7 +73,7 @@ const usePokerRoom = () => {
       console.log("Player cards changed:", playerCards);
       setGameState((prevState) => ({
         ...prevState,
-        playerCards
+        playerCards,
       }));
     };
 

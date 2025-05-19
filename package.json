@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "start-game-server": "npm run start --prefix ./game-server",
+    "game-server": "npm run start --prefix ./game-server",
     "front-dev": "npm run dev --prefix ./front",
     "start-nest": "npm run start --prefix ./server"
   },

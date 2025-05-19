@@ -1,4 +1,4 @@
-import { Schema, Context, type, MapSchema, ArraySchema } from '@colyseus/schema'
+import { Schema, type, MapSchema, ArraySchema } from '@colyseus/schema'
 import { PlayerState } from './PlayerState'
 import { Card } from './Card'
 import { Seat } from './Seat'
@@ -18,7 +18,7 @@ export class GameState extends Schema {
   @type('number') pot = 0
   @type('number') currentBet = 0
   @type('number') gamePhase: RoundType = RoundType.PREFLOP // preFlop, flop, turn, river
-  @type('number') TURN_TIME = 10000
+  @type('number') TURN_TIME = 9999999
   @type('number') GAME_LOOP_DELAY = 10000
   @type('number') MAX_SEATS = 10
   @type('number') MIN_PLAYERS = 2

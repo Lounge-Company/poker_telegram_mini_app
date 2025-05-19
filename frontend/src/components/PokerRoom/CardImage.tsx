@@ -1,16 +1,23 @@
-import { cardImages, getFullRankName } from "src/services/CardImagesService";
+import { getCardImage } from "src/services/CardImagesService";
 import { CardType } from "src/types/game";
 
-const CardImage = ({ suit, rank }: CardType) => {
-  const fullRank = getFullRankName(rank);
-  const imageKey = `${suit}_${fullRank.toLowerCase()}`;
+interface CardImageProps extends CardType {
+  size?: string; // Добавляем возможность изменять размер через пропс
+  className?: string;
+}
 
-  const imagePath = cardImages[imageKey];
+const CardImage = ({
+  suit,
+  rank,
+  size = "w-16",
+  className = "",
+}: CardImageProps) => {
+  const imagePath = getCardImage(suit, rank);
 
   if (!imagePath) {
     return (
       <div>
-        Loading... {suit} {rank} {fullRank}
+        Loading... {suit} {rank} {imagePath}
       </div>
     );
   }
@@ -19,7 +26,7 @@ const CardImage = ({ suit, rank }: CardType) => {
     <img
       src={imagePath}
       alt={`${rank} of ${suit}`}
-      className="w-16 h-24 object-contain"
+      className={`${size} aspect-[2/3] object-contain ${className}`}
     />
   );
 };
