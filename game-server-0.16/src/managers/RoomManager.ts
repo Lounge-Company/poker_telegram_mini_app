@@ -1,7 +1,4 @@
-import { PlayerRepository } from '../repositories/Player.repository'
-import { SeatRepository } from '../repositories/Seat.repository'
 import { GameState } from '../rooms/schema/GameState'
-import { Seat } from '../rooms/schema/Seat'
 
 export class RoomManager {
   constructor(private state: GameState) {}
@@ -32,6 +29,7 @@ export class RoomManager {
       clonedPlayer.ready = false
       clonedPlayer.hasFolded = true
       clonedPlayer.isAllIn = true
+      clonedPlayer.acted = true
       this.state.players.set(playerId, clonedPlayer)
       this.state.spectators.delete(playerId)
     }
