@@ -1,5 +1,5 @@
 import { PlayerState } from '../rooms/schema/PlayerState'
-import { ClientService } from '../services/clientService'
+import { ClientService } from './clientService'
 import { GameState } from '../rooms/schema/GameState'
 import { PlayerManager } from '../managers/PlayerManager'
 
