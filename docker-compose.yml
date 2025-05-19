@@ -18,12 +18,12 @@ services:
 
   game-server:
     build:
-      context: ./game-server-0.16
+      context: ./game-server
       dockerfile: Dockerfile
     ports:
       - '2567:2567'
     volumes:
-      - ./game-server-0.16:/app
+      - ./game-server:/app
       - /app/node_modules
     environment:
       - NODE_ENV=development
