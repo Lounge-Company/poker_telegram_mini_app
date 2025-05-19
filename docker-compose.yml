@@ -20,22 +20,29 @@ services:
     build:
       context: ./game-server
       dockerfile: Dockerfile
+    image: colyseus-server-image
+    entrypoint: ['echo', 'colyseus-server-image built']
+
+  room-service:
+    build:
+      context: ./room-service
+      dockerfile: Dockerfile
     ports:
-      - '2567:2567'
+      - '3001:3001'
+    env_file:
+      - .env
     volumes:
-      - ./game-server:/app
-      - /app/node_modules
-    environment:
-      - NODE_ENV=development
-    healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:2567/ping']
-      interval: 10s
-      timeout: 3s
-      start_period: 5s
+      - /var/run/docker.sock:/var/run/docker.sock
     restart: unless-stopped
     networks:
       - poker_network
 
+  redis:
+    image: redis:alpine
+    ports:
+      - '${REDIS_PORT}:6379'
+    networks:
+      - poker_network
 networks:
   poker_network:
     driver: bridge
