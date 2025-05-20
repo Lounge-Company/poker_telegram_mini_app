@@ -1,12 +1,39 @@
 version: '3.8'
 
 services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    command:
+      - '--api.dashboard=true'
+      - '--providers.docker=true'
+      - '--entrypoints.web.address=:80'
+      - '--log.level=INFO'
+    ports:
+      - '80:80'
+      - '8080:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-net
+
+  nestjs-app:
+    build: ./server
+    ports:
+      - '3000:3000'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nest.rule=Host(`localhost`)'
+      - 'traefik.http.services.nest.loadbalancer.server.port=3000'
+    networks:
+      - traefik-net
+
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
     ports:
-      - '3000:3000'
+      - '3002:3000'
     volumes:
       - ./frontend:/app
       - /app/node_modules
@@ -46,3 +73,6 @@ services:
 networks:
   poker_network:
     driver: bridge
+
+  traefik-net:
+    external: true

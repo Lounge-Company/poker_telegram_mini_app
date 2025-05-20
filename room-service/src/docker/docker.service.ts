@@ -25,8 +25,8 @@ export class DockerService implements OnModuleInit, OnApplicationShutdown {
 
   async startContainer(port: number): Promise<string> {
     const containerName = `colyseus-room-${port}`;
+    const roomPath = `/room${port}`; // например, /room2567
 
-    // Проверяем, существует ли контейнер с таким именем
     const containers = await this.docker.listContainers({ all: true });
     const existing = containers.find((c) =>
       c.Names.includes(`/${containerName}`),
@@ -45,7 +45,7 @@ export class DockerService implements OnModuleInit, OnApplicationShutdown {
           `Failed to remove existing container ${containerName}:`,
           e,
         );
-        throw e; // или можно игнорировать ошибку, если хочешь
+        throw e;
       }
     }
 
@@ -60,9 +60,26 @@ export class DockerService implements OnModuleInit, OnApplicationShutdown {
           '2567/tcp': [{ HostPort: port.toString() }],
         },
       },
+      Labels: {
+        // Маршрутизируем путь /room123 на этот контейнер
+        [`traefik.http.routers.${containerName}.rule`]: `PathPrefix(\`${roomPath}\`)`,
+        [`traefik.http.services.${containerName}.loadbalancer.server.port`]:
+          '2567',
+
+        // Добавляем middleware, который убирает префикс /room123 из пути при проксировании
+        [`traefik.http.middlewares.strip-${containerName}.stripprefix.prefixes`]:
+          roomPath,
+        [`traefik.http.routers.${containerName}.middlewares`]: `strip-${containerName}`,
+      },
+      NetworkingConfig: {
+        EndpointsConfig: {
+          'traefik-net': {},
+        },
+      },
     });
 
     await container.start();
+    console.log(`Started container ${containerName} at /room${port}`);
     return container.id;
   }
 
