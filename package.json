@@ -7,7 +7,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "game-server": "npm run start --prefix ./game-server",
     "front-dev": "npm run dev --prefix ./front",
-    "start-nest": "npm run start --prefix ./server"
+    "start-nest": "npm run start --prefix ./server",
+    "build-front": "npm run build --prefix ./frontend"
   },
   "author": "",
   "license": "ISC"

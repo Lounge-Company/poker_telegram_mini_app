@@ -20,10 +20,12 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@types/node": "^22.15.19",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
     "@types/react-modal": "^3.16.3",
     "@vitejs/plugin-react": "^4.3.4",
+    "dotenv": "^16.5.0",
     "eslint": "^9.19.0",
     "eslint-config-prettier": "^10.0.1",
     "eslint-define-config": "^2.1.0",
