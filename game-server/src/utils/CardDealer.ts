@@ -31,7 +31,7 @@ export class CardDealer {
         new Card().assign({ suit: 'back', rank: 'back' })
       ]
 
-      this.playerRepository.setOpenCards(id, cards)
+      this.playerRepository.setOpenCards(id, placeholderCards)
       this.clientService.sendPlayerCards(id, cards)
 
       playerCards.set(id, cards)
