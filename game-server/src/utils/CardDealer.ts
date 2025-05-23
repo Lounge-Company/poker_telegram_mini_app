@@ -4,9 +4,11 @@ import { ClientService } from '../services/clientService'
 import { PlayerState } from '../rooms/schema/PlayerState'
 import { MapSchema } from '@colyseus/schema'
 import { RoundType } from '../types/GameTypes'
+import { PlayerRepository } from '../repositories/Player.repository'
 
 export class CardDealer {
   constructor(
+    private playerRepository: PlayerRepository,
     private deckManager: DeckManager,
     private clientService: ClientService,
     private getCommunityCards: () => Card[],
@@ -28,10 +30,10 @@ export class CardDealer {
         new Card().assign({ suit: 'back', rank: 'back' }),
         new Card().assign({ suit: 'back', rank: 'back' })
       ]
-      if (player) {
-        player.openCards = placeholderCards
-        this.clientService.sendPlayerCards(id, cards)
-      }
+
+      this.playerRepository.setOpenCards(id, cards)
+      this.clientService.sendPlayerCards(id, cards)
+
       playerCards.set(id, cards)
     }
 
