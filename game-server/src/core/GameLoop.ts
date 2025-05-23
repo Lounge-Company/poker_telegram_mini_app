@@ -141,6 +141,7 @@ export class GameLoop {
   }
   private initializeServices() {
     this.cardDealer = new CardDealer(
+      this.playerRepository,
       this.deckManager,
       this.clientService,
       () => this.gameStateRepository.getCommunityCards(),
