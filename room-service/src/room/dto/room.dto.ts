@@ -1,8 +1,11 @@
-export interface Room {
+export class GetRoomDto {
   id: number;
+
+  // creatorID: string;
+
   connectID: number;
+
   players: number;
+
   maxPlayers: number;
-  heartBeat: Date | null;
-  containerId?: string;
 }

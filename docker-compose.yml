@@ -20,13 +20,15 @@ services:
   nestjs-app:
     build: ./server
     ports:
-      - '3000:3000'
+      - '${NEST_APP_PORT}:3000'
     labels:
       - 'traefik.enable=true'
       - 'traefik.http.routers.nest.rule=Host(`localhost`)'
+      - 'traefik.http.routers.nest.entrypoints=web'
       - 'traefik.http.services.nest.loadbalancer.server.port=3000'
     networks:
       - traefik-net
+      - poker_network
 
   # frontend:
   #   build:
@@ -55,7 +57,7 @@ services:
       context: ./room-service
       dockerfile: Dockerfile
     ports:
-      - '3001:3000'
+      - '${ROOM_SERVICE_PORT}:3000'
     env_file:
       - .env
     volumes:

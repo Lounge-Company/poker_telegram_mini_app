@@ -18,7 +18,7 @@ export class AppService implements OnApplicationBootstrap {
   }
 
   async onApplicationBootstrap() {
-    const room = await this.roomService.createRoom({ port: 2567 });
-    console.log('✅ Initial room started at port:', room.port);
+    const room = await this.roomService.createRoom({ connectID: 2567 });
+    console.log('✅ Initial room started at port:', room.connectID);
   }
 }
