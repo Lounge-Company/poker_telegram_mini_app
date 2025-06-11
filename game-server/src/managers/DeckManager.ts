@@ -1,12 +1,11 @@
 import { Card } from '../rooms/schema/Card'
-import { CARD_VALUES } from '../utils/CardUtils'
+import { CARD_VALUES } from '../utils/game/CardUtils'
 
 export class DeckManager {
-  private deck: Card[] = []
-  initializeDeck(): Card[] {
+  constructor(private deck: Card[]) {}
+  createDeck(): Card[] {
     const { suits, ranks } = CARD_VALUES
 
-    this.deck = []
     for (const suit of suits) {
       for (const rank of ranks) {
         const card = new Card()
@@ -16,17 +15,20 @@ export class DeckManager {
       }
     }
 
-    this.shuffleDeck()
+    this.shuffleDeck(this.deck)
     return this.deck
   }
 
-  private shuffleDeck() {
-    for (let i = this.deck.length - 1; i > 0; i--) {
+  private shuffleDeck(deck: Card[]) {
+    for (let i = deck.length - 1; i > 0; i--) {
       const j = Math.floor(Math.random() * (i + 1))
-      ;[this.deck[i], this.deck[j]] = [this.deck[j], this.deck[i]]
+      ;[deck[i], deck[j]] = [deck[j], deck[i]]
     }
   }
-  drawCard(): Card {
-    return this.deck.pop()
+  drawCard(deck: Card[]): Card {
+    return deck.pop()
+  }
+  resetDeck() {
+    this.deck = []
   }
 }

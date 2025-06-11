@@ -1,56 +1,49 @@
 import { Room, Client } from '@colyseus/core'
 import { PlayerState } from './schema/PlayerState'
 import { GameState } from './schema/GameState'
-import { TurnManager } from '../managers/TurnManager'
-import { GameManager } from '../managers/GameManager'
+import { RoomHandlers } from '../handlers/roomHandlers'
+import { RoomManager } from '../managers/RoomManager'
+import { GameLoop } from '../core/GameLoop'
+import { ClientService } from '../services/clientService'
+import { GameHandlers } from '../handlers/gameHandlers'
+
 export class MyRoom extends Room<GameState> {
-  private GameManager: GameManager
-  private turnManager: TurnManager
+  private RoomHandlers: RoomHandlers
+  private GameLoop: GameLoop
+  private ClientService: ClientService
+  private GameHandlers: GameHandlers
 
   onCreate(options: any) {
-    this.setState(new GameState())
-    this.turnManager = new TurnManager(this.state)
-    this.GameManager = new GameManager(this.state, this.turnManager)
-    this.onMessage('action', (client, data) => {
-      const { action, amount } = data
-      this.GameManager.handlePlayerAction(client.sessionId, action, amount)
-    })
+    this.state = new GameState()
+    this.setSeatReservationTime(60)
+    this.RoomHandlers = new RoomHandlers(this) // remove logic from handler and manager from args
+    this.GameHandlers = new GameHandlers(this, this.state)
+    this.ClientService = ClientService.getInstance()
+    this.ClientService.setRoom(this)
+    this.GameLoop = new GameLoop(this, this.ClientService)
   }
-
   onJoin(client: Client) {
-    console.log(`${client.sessionId} joined the room`)
-
-    // Создаем нового игрока, используя PlayerState
+    // fix this
     const newPlayer = new PlayerState()
     newPlayer.id = client.sessionId
-
-    // Добавляем нового игрока в список игроков в состоянии игры
-    this.state.players.push(newPlayer)
-
-    // Если в комнате достаточно игроков, начинаем игру
-    if (this.state.players.length >= 2 && !this.state.gameStarted) {
-      this.startGame() // Запуск игры
-    }
+    newPlayer.name = `Player ${Math.floor(Math.random() * 1000)}`
+    this.state.spectators.set(client.sessionId, newPlayer)
   }
-
   onLeave(client: Client) {
-    console.log(client.sessionId, 'left!')
-    this.state.players = this.state.players.filter(
-      (p) => p.id !== client.sessionId
-    )
-    this.broadcast('playerLeft', client.sessionId)
-    if (this.state.players.length < 2) {
-      this.GameManager.endGame()
+    // fix this
+    const seat = this.state.seats.find((s) => s.playerId === client.sessionId) // move leave logic to manager
+    if (seat) {
+      seat.playerId = ''
     }
+    const player = this.state.players.get(client.sessionId)
+    if (player) this.state.players.delete(client.sessionId)
+    const spectator = this.state.spectators.get(client.sessionId)
+    if (spectator) this.state.spectators.delete(client.sessionId)
+    this.ClientService.broadcastSystemMessage(
+      `Player ${client.sessionId} left the game`
+    )
   }
-
   onDispose() {
-    console.log('room', this.roomId, 'disposing...')
-  }
-  private startGame() {
-    console.log('Game started')
-    // Логика начала игры
-    this.state.gameStarted = true
-    this.GameManager.startNewRound()
+    // console.log('room', this.roomId, 'disposing...')
   }
 }

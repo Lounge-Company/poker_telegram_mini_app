@@ -4,21 +4,31 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
+    "dev": "vite --port 3000 --host",
+    "build": "eslint . && tsc -b && vite build",
+    "lint": "eslint src/components/PokerRoom/Seat.tsx",
     "preview": "vite preview"
   },
   "dependencies": {
+    "@tailwindcss/vite": "^4.0.1",
+    "antd": "^5.22.7",
+    "colyseus.js": "^0.16.0",
     "react": "^18.3.1",
-    "react-dom": "^18.3.1"
+    "react-dom": "^18.3.1",
+    "react-modal": "^3.16.3",
+    "tailwindcss": "^4.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
+    "@types/node": "^22.15.19",
     "@types/react": "^18.3.12",
     "@types/react-dom": "^18.3.1",
+    "@types/react-modal": "^3.16.3",
     "@vitejs/plugin-react": "^4.3.4",
-    "eslint": "^9.15.0",
+    "dotenv": "^16.5.0",
+    "eslint": "^9.19.0",
+    "eslint-config-prettier": "^10.0.1",
+    "eslint-define-config": "^2.1.0",
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.14",
     "globals": "^15.12.0",

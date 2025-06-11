@@ -1,46 +1,106 @@
+import { IPlayerRepository } from '../interfaces/repositories/IPlayerRepository'
+import { ISeatRepository } from '../interfaces/repositories/ISeatRepository'
 import { GameState } from '../rooms/schema/GameState'
-import { PlayerState } from '../rooms/schema/PlayerState'
+import { ClientService } from '../services/clientService'
+
 export class TurnManager {
   private state: GameState
-  private currentPlayerIndex: number = 0
-  private turnTimeout: NodeJS.Timeout
-  private readonly TURN_TIME = 30000
+  private СlientService: ClientService
 
-  constructor(state: GameState) {
+  constructor(
+    state: GameState,
+    private clientService: ClientService,
+    private playerRepository: IPlayerRepository,
+    private seatRepository: ISeatRepository,
+    private getDealerId: () => string
+  ) {
     this.state = state
   }
-  startTurnTimer() {
-    // Очищаем предыдущий таймер если он был
-    if (this.turnTimeout) {
-      clearTimeout(this.turnTimeout)
+  getStartingPlayer(): string {
+    const seats = this.seatRepository
+      .getSeats()
+      .filter((seat) => seat.playerId && seat.playerId !== '')
+
+    const dealerId = this.getDealerId()
+    const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
+
+    if (dealerIndex === -1 || seats.length === 0) {
+      return seats[0]?.playerId
     }
 
-    // Устанавливаем новый таймер
-    this.turnTimeout = setTimeout(() => {
-      const currentPlayerId = this.getCurrentPlayerId()
-      if (currentPlayerId) {
-        // Автоматический фолд при истечении времени
-        this.state.players.find((p) => p.id === currentPlayerId).hasFolded =
-          true
-        this.nextTurn()
+    const startingIndex = (dealerIndex + 3) % seats.length
+    const startingPlayer = seats[startingIndex]?.playerId
+
+    console.log({
+      totalSeats: seats.length,
+      dealerId,
+      dealerIndex,
+      startingIndex,
+      startingPlayer,
+    })
+
+    return startingPlayer
+  }
+  public allPlayersActed(): boolean {
+    for (const player of this.playerRepository.getAllPlayers().values()) {
+      if (!player.acted) {
+        return false
       }
-    }, this.TURN_TIME)
-  }
-  isPlayerTurn(playerId: string): boolean {
-    return this.state.currentTurn === playerId
-  }
-  getCurrentPlayerId() {
-    return this.state.currentTurn
-  }
-  startRound() {
-    this.currentPlayerIndex = 0
-    this.state.currentTurn = this.state.players[0].id
-    this.startTurnTimer()
+    }
+    return true
   }
 
-  nextTurn() {
-    this.currentPlayerIndex =
-      (this.currentPlayerIndex + 1) % this.state.players.length
-    this.state.currentTurn = this.state.players[this.currentPlayerIndex].id
+  getNextPlayerTurn(): string | undefined {
+    const currentSeatIndex = this.state.seats.findIndex(
+      (seat) => seat.playerId === this.state.currentTurn
+    )
+
+    for (let i = 0; i <= this.state.seats.length; i++) {
+      const nextIndex = (currentSeatIndex + i) % this.state.seats.length
+      const playerId = this.state.seats[nextIndex].playerId
+      const player = this.state.players.get(playerId)
+
+      if (player && !player.acted) {
+        this.state.currentTurn = playerId
+        return playerId
+      }
+    }
+
+    return
+  }
+  getNextActivePlayerAfterDealer(): string {
+    const seats = this.seatRepository
+      .getSeats()
+      .filter((seat) => seat.playerId && seat.playerId !== '')
+
+    const dealerId = this.getDealerId()
+    const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
+
+    for (let i = 0; i <= seats.length; i++) {
+      const nextIndex = (dealerIndex + i) % seats.length
+      const playerId = seats[nextIndex].playerId
+      const player = this.playerRepository.getPlayer(playerId)
+
+      if (player && !player.acted && !player.hasFolded && !player.isAllIn) {
+        return playerId
+      }
+    }
+
+    return seats[0].playerId
+  }
+  moveDealerPosition(): void {
+    const seats = this.seatRepository
+      .getSeats()
+      .filter((seat) => seat.playerId && seat.playerId !== '')
+
+    const dealerId = this.getDealerId()
+    const dealerIndex = seats.findIndex((seat) => seat.playerId === dealerId)
+    const newDealerIndex = (dealerIndex + 1) % seats.length
+    const newDealerId = seats[newDealerIndex].playerId
+    console.log('next dealer id:', newDealerId)
+    this.state.dealerId = newDealerId
+  }
+  resetCurrentTurn(): void {
+    this.state.currentTurn = ''
   }
 }

@@ -1,0 +1,80 @@
+version: '3.8'
+
+services:
+  traefik:
+    image: traefik:v3.0
+    container_name: traefik
+    command:
+      - '--api.dashboard=true'
+      - '--providers.docker=true'
+      - '--entrypoints.web.address=:80'
+      - '--log.level=INFO'
+    ports:
+      - '80:80'
+      - '8080:8080'
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+    networks:
+      - traefik-net
+
+  nestjs-app:
+    build: ./server
+    ports:
+      - '${NEST_APP_PORT}:3000'
+    labels:
+      - 'traefik.enable=true'
+      - 'traefik.http.routers.nest.rule=Host(`localhost`)'
+      - 'traefik.http.routers.nest.entrypoints=web'
+      - 'traefik.http.services.nest.loadbalancer.server.port=3000'
+    networks:
+      - traefik-net
+      - poker_network
+
+  # frontend:
+  #   build:
+  #     context: ./frontend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - '3002:3000'
+  #   volumes:
+  #     - ./frontend:/app
+  #     - /app/node_modules
+  #   environment:
+  #     - NODE_ENV=development
+  #   restart: unless-stopped
+  #   networks:
+  #     - poker_network
+
+  game-server:
+    build:
+      context: ./game-server
+      dockerfile: Dockerfile
+    image: colyseus-server-image
+    entrypoint: ['echo', 'colyseus-server-image built']
+
+  room-service:
+    build:
+      context: ./room-service
+      dockerfile: Dockerfile
+    ports:
+      - '${ROOM_SERVICE_PORT}:3000'
+    env_file:
+      - .env
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+    networks:
+      - poker_network
+
+  redis:
+    image: redis:alpine
+    ports:
+      - '${REDIS_PORT}:6379'
+    networks:
+      - poker_network
+networks:
+  poker_network:
+    driver: bridge
+
+  traefik-net:
+    external: true
